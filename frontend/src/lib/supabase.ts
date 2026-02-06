@@ -11,7 +11,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase URL or Anon Key is missing. Please check your environment variables.')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Custom lock implementation to prevent "Runtime AbortError" in some environments
+const noOpLock = async (name: string, acquireTimeout: number, fn: () => Promise<any>) => {
+  return await fn()
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    lock: noOpLock,
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+})
 
 // Auth helper functions
 export const auth = {
