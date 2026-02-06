@@ -11,14 +11,14 @@ export function Footer() {
 
   return (
     <footer className="relative py-12 px-4 text-center overflow-hidden" style={{
-      background: 'linear-gradient(180deg, #2C3E50 0%, #1A2530 50%, #151C22 100%)',
-      color: '#FFFFFF'
+      background: 'linear-gradient(180deg, var(--retro-navy) 0%, #1A2530 50%, #151C22 100%)',
+      color: 'var(--retro-white)'
     }}>
       {/* Pixel pattern overlay */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
         backgroundImage: `
-          linear-gradient(90deg, #FFFFFF 1px, transparent 1px),
-          linear-gradient(#FFFFFF 1px, transparent 1px)
+          linear-gradient(90deg, var(--retro-white) 1px, transparent 1px),
+          linear-gradient(var(--retro-white) 1px, transparent 1px)
         `,
         backgroundSize: '6px 6px'
       }} />
@@ -45,8 +45,8 @@ export function Footer() {
       <div className="pixel-container relative z-10 max-w-4xl mx-auto">
         {/* Main Footer Card */}
         <div className="pixel-card mb-8" style={{
-          background: 'linear-gradient(180deg, #34495E 0%, #2C3E50 100%)',
-          border: '4px solid #FF6B9D'
+          background: 'linear-gradient(180deg, #34495E 0%, var(--retro-navy) 100%)',
+          border: '4px solid var(--retro-pink)'
         }}>
           {/* Logo Section */}
           <div className="mb-6 flex flex-col items-center">
@@ -59,15 +59,15 @@ export function Footer() {
               />
             </div>
             <div className="flex items-center justify-center gap-3 mb-3">
-              <h3 className="pixel-text-shadow-glow pixel-font-heading text-xl md:text-2xl font-bold" style={{ color: '#FF6B9D' }}>
+              <h3 className="pixel-text-shadow-glow pixel-font text-xl md:text-2xl font-bold" style={{ color: 'var(--retro-pink)' }}>
                 Wizard Connect
               </h3>
             </div>
 
             <div className="flex items-center justify-center gap-4 w-full">
-              <div className="pixel-divider-pink flex-1 max-w-24 opacity-60" style={{ height: '3px', margin: '0' }}></div>
-              <PixelIcon name="heart_solid" size={20} className="animate-pulse" />
-              <div className="pixel-divider-pink flex-1 max-w-24 opacity-60" style={{ height: '3px', margin: '0' }}></div>
+              <div className="pixel-divider flex-1 max-w-24 opacity-60" style={{ height: '3px', margin: '0', background: 'var(--retro-pink)' }}></div>
+              <PixelIcon name="heart_solid" size={20} className="animate-pulse text-[var(--retro-pink)]" />
+              <div className="pixel-divider flex-1 max-w-24 opacity-60" style={{ height: '3px', margin: '0', background: 'var(--retro-pink)' }}></div>
             </div>
           </div>
 
@@ -96,9 +96,9 @@ export function Footer() {
         {/* Divider with pixel decorations */}
         <div className="flex items-center justify-center gap-4 mb-6">
           <PixelIcon name="chick" size={32} className="pixel-bounce opacity-80" />
-          <div className="pixel-divider opacity-30 flex-1 max-w-48" style={{ height: '4px', margin: '0', background: '#FF6B9D' }}></div>
+          <div className="pixel-divider opacity-30 flex-1 max-w-48" style={{ height: '4px', margin: '0', background: 'var(--retro-pink)' }}></div>
           <PixelIcon name="heart_solid" size={24} className="opacity-80" />
-          <div className="pixel-divider opacity-30 flex-1 max-w-48" style={{ height: '4px', margin: '0', background: '#FF6B9D' }}></div>
+          <div className="pixel-divider opacity-30 flex-1 max-w-48" style={{ height: '4px', margin: '0', background: 'var(--retro-pink)' }}></div>
           <PixelIcon name="chick" size={32} className="pixel-bounce opacity-80 scale-x-[-1]" />
         </div>
 
@@ -126,9 +126,9 @@ function FooterLink({ icon, label }: { icon: React.ReactNode; label: string }) {
       href="#"
       className="pixel-tag pixel-font-heading text-[10px] py-2 px-4 transition-all hover:-translate-y-1 hover:shadow-[4px_4px_0_rgba(0,0,0,0.2)] flex items-center gap-2"
       style={{
-        background: '#2C3E50',
-        color: '#FFFFFF',
-        border: '2px solid #5BB5E3'
+        background: 'var(--retro-navy)',
+        color: 'var(--retro-white)',
+        border: '2px solid var(--retro-blue)'
       }}
     >
       {icon} {label}

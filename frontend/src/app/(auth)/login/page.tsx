@@ -1,133 +1,235 @@
 // ============================================
-// LOGIN PAGE - PIXEL CONCEPT DESIGN
-// Dreamy vaporwave Google OAuth login
+// LOGIN PAGE - HIGH-FIDELITY PIXEL UI
+// Concept: Neo-Retro Cyber Terminal
 // ============================================
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { ParallaxBackground, ScanlineEffect } from '@/components/effects/ParallaxBackground'
-import { ParticleEffects } from '@/components/effects/ParticleEffects'
-import { PixelIcon } from '@/components/ui/PixelIcon'
+import { auth } from '@/lib/supabase'
 
 export default function LoginPage() {
   const router = useRouter()
+  const [isHovering, setIsHovering] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    // Redirect logic would go here
+    // Check if user is already logged in
+    const checkSession = async () => {
+      const session = await auth.getSession()
+      if (session) {
+        router.push('/survey')
+      }
+    }
+    checkSession()
   }, [router])
 
-  const handleGoogleLogin = async () => {
-    console.log('Google login clicked')
-    alert('Authentication will be implemented after Supabase setup!')
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
+
+    try {
+      let result
+      if (isSignUp) {
+        // Sign up
+        result = await auth.signUp(email, password)
+        if (result.error) {
+          setError(result.error.message)
+          setIsLoading(false)
+          return
+        }
+        alert('Account created! You can now sign in.')
+        setIsSignUp(false)
+      } else {
+        // Sign in
+        result = await auth.signIn(email, password)
+        if (result.error) {
+          setError(result.error.message)
+          setIsLoading(false)
+          return
+        }
+        // Success - redirect will happen via useEffect
+        router.push('/survey')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-16 px-4 relative overflow-hidden bg-[#E0F7FA]">
-      {/* Background Effects */}
-      <ParallaxBackground />
-      <ParticleEffects type="sparkles" density="12" className="opacity-30" />
-      <ScanlineEffect />
+    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-[#0F0F1A]">
 
-      {/* Cityscape Background Layer (Bottom) */}
-      <div className="absolute bottom-0 left-0 right-0 h-[40vh] w-full z-0 opacity-60 pointer-events-none">
+      {/* 1. Immersive Background Layer */}
+      <div className="absolute inset-0 z-0">
         <Image
-          src="/images/hero-city.png"
-          alt="City Background"
+          src="/images/bg.gif"
+          alt="Cyber City Background"
           fill
-          className="object-cover object-bottom"
+          className="object-cover opacity-40 grayscale-[30%] scale-105"
+          priority
+          unoptimized
         />
+        {/* Cinematic Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F1A] via-[#0F0F1A]/60 to-transparent" />
       </div>
 
-      {/* Floating decorations - Emojis Replaced with PixelIcon */}
-      <div className="absolute top-12 left-8 pixel-bounce pointer-events-none opacity-70">
-        <PixelIcon name="star" size={32} />
-      </div>
-      <div className="absolute top-24 right-16 pixel-float pointer-events-none opacity-60" style={{ animationDelay: '0.5s' }}>
-        <PixelIcon name="sparkle" size={24} />
-      </div>
+      {/* 2. Main Login Card - High-End Pixel Art (Long Form) */}
+      <div className="relative z-10 w-full max-w-md mx-4 perspective-1000">
 
-      <div className="pixel-container max-w-md mx-auto relative z-10 w-full">
-        <div className="pixel-card shadow-[12px_12px_0_rgba(44,62,80,0.2)]" style={{
-          background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FCFF 50%, #F0F8FF 100%)',
-          border: '4px solid #2C3E50'
-        }}>
-          {/* Wizard Avatar from Sprite */}
-          <div className="mb-6 flex justify-center">
-            <div className="w-24 h-24 overflow-hidden relative border-4 border-[#2C3E50] bg-[#E0F7FA] rounded-xl shadow-inner animate-bounce-slow">
-              {/* Show only the Wizard (Left 1/3 of the sprite) */}
-              <div className="absolute top-0 left-0 w-[300%] h-full">
-                <Image
-                  src="/images/team-avatars.png"
-                  alt="Wizard Avatar"
-                  fill
-                  className="object-contain"
-                />
+        {/* Floating Container */}
+        <div
+          className="relative transition-transform duration-500 ease-out hover:-translate-y-2 group"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+        >
+          {/* Neon Glow Backlight */}
+          <div className="absolute -inset-[3px] bg-gradient-to-b from-[#00FFFF] via-[#FF00FF] to-[#00FFFF] rounded-sm opacity-30 blur-lg group-hover:opacity-60 group-hover:blur-xl transition-all duration-500 animate-pulse" />
+
+          {/* Main Chassis */}
+          <div className="relative bg-[#0F0518] border-2 border-[#2D1B2E] shadow-[0_0_0_4px_#000000,0_30px_60px_rgba(0,0,0,0.8)] flex flex-col min-h-[600px]">
+
+            {/* A. Retro OS Header Bar */}
+            <div className="h-12 bg-[#2D1B2E] flex items-center justify-between px-4 border-b-4 border-[#000]">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-[#FF5F57] shadow-[inset_1px_1px_0_rgba(255,255,255,0.4)] border border-black/20" />
+                <div className="w-3 h-3 bg-[#FFBD2E] shadow-[inset_1px_1px_0_rgba(255,255,255,0.4)] border border-black/20" />
+                <div className="w-3 h-3 bg-[#28C840] shadow-[inset_1px_1px_0_rgba(255,255,255,0.4)] border border-black/20" />
+                <div className="h-6 w-[2px] bg-[#4A3B55] mx-2" />
+                <span className="font-['Press_Start_2P'] text-[10px] text-[#FF0000] tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.5)]">
+                  WIZARD_OS.SYS
+                </span>
+              </div>
+              <div className="flex gap-1 opacity-50">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="w-1 h-4 bg-[#4A3B55]" />
+                ))}
               </div>
             </div>
-          </div>
 
-          <h1 className="pixel-text-shadow-glow gradient-text-animated pixel-font-heading text-2xl font-bold mb-2 text-center">
-            Player Login
-          </h1>
-          <p className="text-center pixel-font-body text-sm mb-6 text-[#2C3E50]/70">
-            Mapua Student Portal Access
-          </p>
+            {/* B. Main Terminal Content */}
+            <div className="flex-1 p-6 md:p-8 flex flex-col relative overflow-hidden">
 
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="pixel-divider-pink flex-1 max-w-16" style={{ height: '3px', margin: '0' }}></div>
-            <PixelIcon name="trophy" size={24} className="animate-pulse" />
-            <div className="pixel-divider-pink flex-1 max-w-16" style={{ height: '3px', margin: '0' }}></div>
-          </div>
+              {/* Background Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-b from-[#1A0B2E] via-[#0F0518] to-[#0F0518] pointer-events-none" />
 
-          <div className="space-y-4">
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full pixel-btn pixel-btn-primary pixel-glow text-center py-4 hover:translate-y-[-2px] transition-transform"
-            >
-              <span className="flex items-center justify-center gap-3 pixel-font-heading text-xs">
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              {/* B1. Holographic Logo */}
+              <div className="relative z-10 flex flex-col items-center mt-4 mb-6">
+                <div className="relative w-24 h-24 md:w-32 md:h-32 mb-4 group-hover:scale-105 transition-transform duration-500">
+                  <div className="absolute inset-0 bg-[#FF0000] blur-[40px] opacity-20 animate-pulse" />
+                  <Image
+                    src="/images/wizardconnect-logo.png"
+                    alt="Wizard Connect"
+                    fill
+                    className="object-contain drop-shadow-[4px_4px_0_rgba(0,0,0,0.8)]"
+                    priority
                   />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                Sign in with Google
-              </span>
-            </button>
-          </div>
+                </div>
+                <h1 className="font-['Press_Start_2P'] text-lg text-center text-white mb-2 leading-relaxed" style={{ textShadow: '3px 3px 0 #2D1B2E' }}>
+                  {isSignUp ? 'NEW PLAYER' : 'PLAYER'}<br /><span className="text-[#FF6B9D]">{isSignUp ? 'SIGN UP' : 'LOGIN'}</span>
+                </h1>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-2 h-2 bg-[#28C840] animate-ping" />
+                  <span className="font-mono text-xs text-[#28C840]">Secure Channel Active</span>
+                </div>
+              </div>
 
-          <div className="mt-8 text-center bg-[#F8F9FA] p-4 border-2 border-[#2C3E50] rounded-lg">
-            <p className="pixel-font-body text-[10px] text-[#2C3E50] mb-2 uppercase tracking-widest font-bold">
-              Mission Status
-            </p>
-            <div className="flex items-center justify-between text-xs px-2">
-              <span className="text-[#00D4FF]">SURVEY ONLINE</span>
-              <div className="w-2 h-2 rounded-full bg-[#00D4FF] animate-pulse"></div>
+              {/* B2. Email/Password Form */}
+              <form onSubmit={handleEmailAuth} className="relative z-10 space-y-4 mb-4">
+                <div>
+                  <label className="font-mono text-xs text-[#00FFFF] mb-2 block">&gt; EMAIL_ADDRESS</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full bg-black/60 border-2 border-[#2D1B2E] rounded px-4 py-3 font-mono text-sm text-white focus:border-[#FF6B9D] focus:outline-none transition-colors"
+                    placeholder="Enter your email"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-[#00FFFF] mb-2 block">&gt; PASSWORD</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full bg-black/60 border-2 border-[#2D1B2E] rounded px-4 py-3 font-mono text-sm text-white focus:border-[#FF6B9D] focus:outline-none transition-colors"
+                    placeholder="Enter your password"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {error && (
+                  <div className="bg-[#FF0000]/20 border border-[#FF0000] rounded px-3 py-2 font-mono text-xs text-[#FF6B6B]">
+                    ⚠ {error}
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full relative group focus:outline-none transform transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  <div className="absolute inset-0 bg-[#2D1B2E] rounded-full translate-y-1.5" />
+                  <div className="relative bg-[#FF4D6D] h-14 rounded-full border-4 border-[#2D1B2E] flex items-center justify-center gap-3 overflow-hidden shadow-[inset_0_-4px_0_rgba(0,0,0,0.2)]">
+                    <div className="absolute top-2 left-6 w-8 h-3 bg-white/90 rounded-full rotate-[-15deg] opacity-80" />
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-[#2D1B2E] border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <svg className="w-5 h-5 text-[#2D1B2E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                      </svg>
+                    )}
+                    <span className="font-['Press_Start_2P'] text-sm text-[#2D1B2E] tracking-wider">
+                      {isLoading ? 'LOADING...' : isSignUp ? 'CREATE ACCOUNT' : 'LOGIN'}
+                    </span>
+                  </div>
+                </button>
+              </form>
+
+              {/* Toggle Sign In/Sign Up */}
+              <div className="relative z-10 text-center mt-2">
+                <button
+                  type="button"
+                  onClick={() => { setIsSignUp(!isSignUp); setError('') }}
+                  className="font-mono text-xs text-[#00FFFF] hover:text-[#FF6B9D] transition-colors"
+                  disabled={isLoading}
+                >
+                  {isSignUp ? 'Already have an account? LOGIN' : 'New player? CREATE ACCOUNT'}
+                </button>
+              </div>
+
             </div>
+
+            {/* C. Footer Status Bar */}
+            <div className="h-8 bg-[#0F0518] border-t-2 border-[#2D1B2E] flex items-center justify-between px-4">
+              <span className="font-mono text-[9px] text-[#4A5568]">MEMORY: 64KB OK</span>
+              <div className="flex gap-2">
+                <div className="w-2 h-2 bg-[#FF00FF] animate-pulse" />
+                <div className="w-2 h-2 bg-[#00FFFF] animate-pulse delay-75" />
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div className="mt-6 text-center">
-          <a href="/" className="pixel-font-body text-xs hover:underline decoration-2 underline-offset-4" style={{ color: '#2C3E50' }}>
-            ← Return to Main Menu
-          </a>
-        </div>
+        {/* Floor Shadow Reflection */}
+        <div className="mx-auto w-[80%] h-8 bg-black/50 blur-xl rounded-[100%] mt-8 transform scale-y-50" />
       </div>
+
     </div>
   )
 }

@@ -62,30 +62,15 @@ export function Stats() {
 
                 {/* Right: Giant Gameboy Illustration */}
                 <div className="flex-1 relative w-full flex justify-center">
-                    <div className="relative w-[300px] h-[500px] md:w-[350px] md:h-[580px] animate-float">
+                    <div className="relative w-[300px] h-[500px] md:w-[350px] md:h-[780px] animate-float">
                         <Image
-                            src="/images/retro-gameboy.png"
+                            src="/images/music.gif"
                             alt="Retro Gameboy Stats"
                             fill
                             className="object-contain drop-shadow-xl"
                         />
-                        {/* Overlay Content on Gameboy Screen */}
-                        <div className="absolute top-[18%] left-[13%] right-[13%] h-[24%] flex flex-col items-center justify-center text-center">
-                            <div className="font-mono text-[#0F380F] font-bold text-lg animate-pulse">
-                                POINT UP!
-                            </div>
-                            <div className="flex mt-2 gap-2">
-                                <PixelIcon name="star" size={16} className="opacity-60" />
-                                <PixelIcon name="star" size={16} className="opacity-60" />
-                                <PixelIcon name="star" size={16} className="opacity-60" />
-                            </div>
-                            <div className="font-mono text-[#0F380F] text-xs mt-2">
-                                HIGH SCORE: 99999
-                            </div>
-                        </div>
                     </div>
                 </div>
-
             </div>
         </section>
     )

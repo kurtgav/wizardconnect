@@ -2,8 +2,6 @@
 
 import { SurveyForm } from '@/components/features/survey/SurveyForm'
 import { useRouter } from 'next/navigation'
-import { ParallaxBackground, ScanlineEffect } from '@/components/effects/ParallaxBackground'
-import { ParticleEffects } from '@/components/effects/ParticleEffects'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
 
 export default function SurveyPage() {
@@ -19,91 +17,58 @@ export default function SurveyPage() {
   }
 
   return (
-    <main className="min-h-screen relative">
-      {/* Premium Background Effects */}
-      <ParallaxBackground />
-      <ParticleEffects type="sparkles" density="8" className="opacity-25" />
-      <ScanlineEffect />
-
-      <div className="relative z-10 py-10 px-4" style={{
-        background: 'linear-gradient(180deg, rgba(232, 245, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%)'
-      }}>
-        <div className="pixel-container">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <div className="mb-5 flex items-center justify-center gap-6">
-              <div className="pixel-bounce">
-                <PixelIcon name="envelope" size={48} />
-              </div>
-              <div className="pixel-float" style={{ animationDelay: '0.3s' }}>
-                <PixelIcon name="sparkle" size={32} />
-              </div>
-              <div className="pixel-bounce" style={{ animationDelay: '0.6s' }}>
-                <PixelIcon name="heart_solid" size={48} />
-              </div>
-            </div>
-
-            <h1 className="pixel-text-shadow-glow gradient-text-animated pixel-font-heading text-3xl md:text-4xl font-bold mb-4 leading-relaxed">
-              Wizard Connect Survey
-            </h1>
-
-            <div className="flex items-center justify-center gap-4 mb-5">
-              <div className="pixel-divider-pink flex-1 max-w-24" style={{ height: '4px', margin: '0' }}></div>
-              <span className="text-xl">🪄</span>
-              <div className="pixel-divider-pink flex-1 max-w-24" style={{ height: '4px', margin: '0' }}></div>
-            </div>
-
-            <p className="pixel-font-body text-lg max-w-2xl mx-auto" style={{ color: '#34495E' }}>
-              Help us find your perfect match by answering these questions about yourself.
-              Your responses will be used to calculate compatibility with other Mapua students.
-            </p>
-          </div>
-
-          {/* Survey Form */}
-          <SurveyForm onComplete={handleSurveyComplete} />
-
-          {/* Info Card - Pixel Concept Style */}
-          <div className="mt-10 pixel-card hover-lift max-w-3xl mx-auto" style={{
-            background: 'linear-gradient(180deg, #E8F5FF 0%, #D4F0FF 100%)'
-          }}>
-            <div className="flex items-center gap-3 mb-4">
-              <PixelIcon name="star" size={24} />
-              <h3 className="pixel-font-heading font-bold text-base" style={{ color: '#00D4FF' }}>
-                Tips for Completing the Survey
-              </h3>
-            </div>
-
-            <ul className="space-y-3 pixel-font-body text-sm">
-              <TipItem icon="lock" text="Your progress is saved automatically. You can come back anytime before Feb 10." />
-              <TipItem icon="bubble" text="The survey takes about 15-20 minutes to complete." />
-              <TipItem icon="target" text="Be honest - our algorithm works best with genuine responses." />
-              <TipItem icon="heart_solid" text="The crush list is optional but highly recommended!" />
-              <TipItem icon="lock" text="All responses are confidential and only used for matching." />
-            </ul>
-
-            {/* Decorative bottom */}
-            <div className="mt-5 flex items-center justify-center gap-2 opacity-50">
-              <span className="text-sm">⋆</span>
-              <div className="pixel-divider flex-1 max-w-32" style={{ height: '2px', margin: '0' }}></div>
-              <span className="text-sm">⋆</span>
-            </div>
-          </div>
-
-          {/* Cute characters at bottom */}
-          <div className="flex justify-center items-center gap-8 mt-8">
-            <div className="pixel-bounce opacity-70">
-              <PixelIcon name="chick" size={48} />
-            </div>
-            <div className="pixel-float opacity-60" style={{ animationDelay: '0.2s' }}>
-              <PixelIcon name="sparkle" size={32} />
-            </div>
-            <div className="pixel-bounce opacity-70" style={{ animationDelay: '0.4s' }}>
-              <PixelIcon name="chick" size={40} />
-            </div>
-          </div>
+    <div className="max-w-4xl mx-auto py-8">
+      {/* Header Section */}
+      <div className="text-center mb-10">
+        <h1 className="pixel-font text-3xl md:text-5xl font-bold mb-4 text-[var(--retro-navy)] uppercase tracking-tighter">
+          Wizard<span className="text-[var(--retro-red)]">Match</span> Survey
+        </h1>
+        <div className="inline-block bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] px-4 py-1 transform -rotate-2 shadow-[4px_4px_0_0_var(--retro-navy)]">
+          <p className="pixel-font-body font-bold text-[var(--retro-navy)]">
+            FIND YOUR PLAYER 2
+          </p>
         </div>
       </div>
-    </main>
+
+      {/* Main Form Card */}
+      <div className="pixel-card mb-8">
+        <div className="mb-6 flex items-center gap-3 border-b-4 border-[var(--retro-navy)] pb-4">
+          <div className="p-2 bg-[var(--retro-red)] border-2 border-[var(--retro-navy)] text-white">
+            <PixelIcon name="envelope" size={24} />
+          </div>
+          <div>
+            <h2 className="pixel-font text-xl">Matchmaking Protocol</h2>
+            <p className="text-sm font-bold text-gray-500">COMPLETE ALL MISSIONS</p>
+          </div>
+        </div>
+
+        <SurveyForm onComplete={handleSurveyComplete} />
+      </div>
+
+      {/* Info Card - Retro Style */}
+      <div className="pixel-card bg-[var(--retro-blue)] text-white">
+        <div className="flex items-center gap-3 mb-4">
+          <PixelIcon name="star" size={24} />
+          <h3 className="pixel-font font-bold text-base text-white underline decoration-4 underline-offset-4 decoration-[var(--retro-navy)]">
+            PRO TIPS
+          </h3>
+        </div>
+
+        <ul className="space-y-3 pixel-font-body text-base">
+          <TipItem icon="lock" text="Progress auto-saved. Return before Game Over (Feb 10)." />
+          <TipItem icon="bubble" text="Mission Time: ~15-20 minutes." />
+          <TipItem icon="target" text="Honesty increases Critical Hit chance (Match %)." />
+          <TipItem icon="heart_solid" text="Crush List is optional optional loot." />
+        </ul>
+      </div>
+
+      {/* Decorative Footer Icons */}
+      <div className="flex justify-center items-center gap-8 mt-12 opacity-50 grayscale hover:grayscale-0 transition-all">
+        <PixelIcon name="chick" size={32} />
+        <PixelIcon name="sparkle" size={24} />
+        <PixelIcon name="chick" size={32} />
+      </div>
+    </div>
   )
 }
 
@@ -111,10 +76,10 @@ export default function SurveyPage() {
 function TipItem({ icon, text }: { icon: PixelIconName; text: string }) {
   return (
     <li className="flex items-start gap-3">
-      <div className="flex-shrink-0 mt-0.5">
+      <div className="flex-shrink-0 mt-0.5 text-[var(--retro-yellow)] drop-shadow-[2px_2px_0_rgba(0,0,0,0.5)]">
         <PixelIcon name={icon} size={20} />
       </div>
-      <span style={{ color: '#34495E' }}>{text}</span>
+      <span className="font-medium drop-shadow-md">{text}</span>
     </li>
   )
 }

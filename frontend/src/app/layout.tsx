@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Press_Start_2P, VT323 } from "next/font/google";
+import { Press_Start_2P, VT323, Inter } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 const pressStart2P = Press_Start_2P({
@@ -14,6 +14,12 @@ const vt323 = VT323({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-vt323",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -36,7 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${pressStart2P.variable} ${vt323.variable} antialiased`}>
+      <body className={`${pressStart2P.variable} ${vt323.variable} ${inter.variable} antialiased`}>
         <AuthProvider>
           {children}
         </AuthProvider>

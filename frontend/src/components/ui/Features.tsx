@@ -64,7 +64,7 @@ export function Features() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="pixel-font-heading text-3xl md:text-5xl font-bold mb-4 text-[#2C3E50]">
-            WHAT WE <span className="text-[#00D4FF]">DO</span>_?
+            WHAT WE <span className="text-[#00D4FF]">DO</span>?
           </h2>
           <div className="flex items-center justify-center gap-2">
             <div className="w-2 h-2 bg-[#FF6B9D]"></div>

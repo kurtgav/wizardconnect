@@ -5,7 +5,6 @@
 
 import { Navbar } from '@/components/ui/Navbar'
 import { Hero } from '@/components/ui/Hero'
-import { Welcome } from '@/components/ui/Welcome'
 import { Features } from '@/components/ui/Features'
 import { Stats } from '@/components/ui/Stats'
 import { HowItWorks } from '@/components/ui/HowItWorks'
@@ -29,9 +28,6 @@ export default function Home() {
       <div className="relative z-10 flex flex-col">
         {/* Hero Section - The Hook */}
         <Hero />
-
-        {/* Welcome Section - The Mission */}
-        <Welcome />
 
         {/* Features - What We Do */}
         <div id="features">
