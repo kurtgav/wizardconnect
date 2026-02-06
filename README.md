@@ -1,211 +1,402 @@
 # 🪄 Wizard Connect
 
-**Mapua Malayan Colleges Laguna's Official Valentine's Day Matchmaking Platform**
+**World-Class Full-Stack Matchmaking Platform for Mapua Malayan Colleges Laguna**
 
-A pixel-art themed matchmaking application that helps Mapua students find their perfect matches based on personality, values, interests, and lifestyle compatibility.
+A production-ready Valentine's Day matchmaking application built with clean architecture, featuring a smart compatibility algorithm, real-time messaging, and premium pixel-art UI.
 
-![Wizard Connect](https://img.shields.io/badge/Mapua-Malayan%20Colleges%20Laguna-red)
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)
+---
 
-## ✨ Features
+## 🌟 Features
 
-- **🎨 Pixel Art UI/UX** - Beautiful retro 8-bit/16-bit themed interface with Mapua's red and blue colors
-- **🎯 Smart Matching Algorithm** - Advanced compatibility scoring using Hungarian algorithm
-- **💕 Crush List System** - Secretly admire up to 5 people with mutual crush bonuses
-- **📝 Comprehensive Survey** - Multi-step survey covering demographics, personality, values, lifestyle, and interests
-- **🔒 Privacy Focused** - User data protected with Supabase Row Level Security (RLS)
-- **💬 Early Messaging** - Exclusive Feb 11-13 messaging period before Valentine's reveal
-- **📱 Mobile Responsive** - Works perfectly on all devices
+### For Students
+- ✅ **Smart Matching Algorithm** - Personality, interests, values, and lifestyle compatibility scoring
+- ✅ **Anonymous Crush List** - Submit up to 5 secret crushes with mutual match detection
+- ✅ **Real-time Messaging** - Chat with your matches before Valentine's Day reveal
+- ✅ **Privacy Controls** - Choose who sees your profile (public, matches only, private)
+- ✅ **Pixel Art UI** - Beautiful retro gaming aesthetic with Mapua branding
 
-## 🗓️ Important Dates
+### For Developers
+- ✅ **Clean Architecture** - 4-layer separation (Domain, Application, Infrastructure, Interface)
+- ✅ **Type-Safe** - Full TypeScript on frontend, strict typing on backend
+- ✅ **Secure** - JWT auth, rate limiting, CORS, RLS, SQL injection prevention
+- ✅ **Scalable** - Stateless design, connection pooling, horizontal scaling ready
+- ✅ **Free Tier Hosting** - Deploy to Render + Vercel + Supabase at $0/month
 
-| Date | Event |
-|------|-------|
-| **Feb 5** | Survey opens |
-| **Feb 10 (11:59 PM)** | Survey closes |
-| **Feb 11-13** | Profile updates & early messaging |
-| **Feb 14** | 💕 Valentine's Day Match Reveal! |
+---
 
-## 🛠️ Tech Stack
+## 🏗️ Architecture
 
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript (strict mode)
-- **Styling**: TailwindCSS with custom pixel art design system
-- **State Management**: React Hooks + Local Storage
-- **UI Components**: Custom pixel-art themed components
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Next.js 14    │     │   Go 1.21 API   │     │   Supabase DB  │
+│   (Vercel)      │◄────┤   (Render)      │◄────┤   PostgreSQL    │
+│   TypeScript    │     │   Clean Arch    │     │   + Auth        │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
 
-### Backend (Python Algorithm Service)
-- **Framework**: FastAPI
-- **Database**: Supabase (PostgreSQL)
-- **Algorithm**: Scipy (Hungarian algorithm), NumPy
-- **Authentication**: Supabase Auth (Google OAuth)
+### Tech Stack
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Frontend** | Next.js 14, TypeScript, TailwindCSS | UI & UX |
+| **Backend** | Go 1.21, Gin, Clean Architecture | API & Business Logic |
+| **Database** | PostgreSQL (Supabase) | Data & Auth |
+| **Hosting** | Vercel (Frontend) + Render (Backend) | Free Tier Deployment |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Node.js** 18+
+- **Go** 1.21+
+- **Supabase** account (free)
+- **GitHub** account
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd wizardconnect
+```
+
+### 2. Set Up Supabase
+
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to SQL Editor and run `wizard-connect-backend/supabase/migrations/001_initial_schema.sql`
+3. Get your credentials:
+   - Project URL
+   - anon/public key
+   - JWT Secret (Settings → API)
+
+### 3. Backend Setup
+
+```bash
+cd wizard-connect-backend
+
+# Install dependencies
+go mod download
+
+# Create environment file
+cp .env.example .env
+
+# Edit .env with your Supabase credentials
+nano .env
+```
+
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_JWT_SECRET=your-jwt-secret
+DB_PASSWORD=your-db-password
+JWT_SECRET=generate-strong-secret
+FRONTEND_URL=http://localhost:3000
+```
+
+```bash
+# Run backend
+make run
+# or
+go run cmd/api/main.go
+```
+
+Backend will run on `http://localhost:8080`
+
+### 4. Frontend Setup
+
+```bash
+cd wizard-connect
+
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.local.example .env.local
+
+# Edit .env.local
+nano .env.local
+```
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+```bash
+# Run frontend
+npm run dev
+```
+
+Frontend will run on `http://localhost:3000`
+
+---
 
 ## 📁 Project Structure
 
 ```
-wizard-connect/
-├── src/
-│   ├── app/                          # Next.js 14 App Router
-│   │   ├── (auth)/                   # Authentication routes
-│   │   │   ├── login/               # Google OAuth login
-│   │   │   └── callback/            # OAuth callback handler
-│   │   ├── (dashboard)/             # Protected routes
-│   │   │   ├── survey/              # Multi-step survey
-│   │   │   ├── profile/             # Profile management
-│   │   │   ├── matches/             # Match results display
-│   │   │   └── messages/            # Messaging system
-│   │   ├── globals.css              # Pixel art design system
-│   │   ├── layout.tsx               # Root layout
-│   │   └── page.tsx                 # Landing page
-│   ├── components/
-│   │   ├── ui/                      # Reusable UI components
-│   │   └── features/                # Feature-specific components
-│   ├── lib/
-│   │   ├── supabase/                # Supabase client setup
-│   │   ├── surveyQuestions.ts       # Survey configuration
-│   │   └── utils.ts                 # Utility functions
-│   └── types/
-│       └── index.ts                 # TypeScript definitions
-├── algorithm-service/                # Python matching service
-│   └── src/
-│       ├── algorithm/
-│       │   ├── scoring.py           # Compatibility scoring
-│       │   └── matching.py          # Hungarian algorithm
-│       └── main.py                  # FastAPI app
-├── supabase/
-│   └── schema.sql                   # Database schema
-└── README.md
+wizardconnect/
+├── wizard-connect/              # Next.js Frontend
+│   ├── src/
+│   │   ├── app/                # Next.js App Router
+│   │   │   ├── (dashboard)/    # Protected routes
+│   │   │   ├── login/          # Authentication
+│   │   │   └── layout.tsx      # Root layout
+│   │   ├── components/         # React components
+│   │   │   ├── effects/        # Parallax, particles
+│   │   │   ├── features/       # Feature components
+│   │   │   └── auth/           # Auth components
+│   │   ├── contexts/           # React contexts
+│   │   │   └── AuthContext.tsx # Auth provider
+│   │   ├── lib/                # Utilities
+│   │   │   ├── api-client.ts   # Backend API client
+│   │   │   └── supabase.ts     # Supabase client
+│   │   └── types/              # TypeScript types
+│   │       └── api.ts          # Shared API types
+│   ├── package.json
+│   └── vercel.json             # Vercel config
+│
+├── wizard-connect-backend/      # Go Backend
+│   ├── cmd/
+│   │   └── api/main.go         # Application entry
+│   ├── internal/
+│   │   ├── application/        # Use cases
+│   │   ├── config/             # Configuration
+│   │   ├── domain/             # Business logic
+│   │   │   ├── entities/       # Domain entities
+│   │   │   ├── repositories/   # Repository interfaces
+│   │   │   └── services/       # Domain services
+│   │   ├── infrastructure/     # External concerns
+│   │   │   ├── database/       # Repository implementations
+│   │   │   └── supabase/       # Supabase client
+│   │   └── interface/          # HTTP layer
+│   │       └── http/
+│   │           ├── controllers/# Request handlers
+│   │           ├── middleware/ # Auth, CORS, rate limit
+│   │           └── routes/     # Route definitions
+│   ├── supabase/migrations/    # SQL migrations
+│   ├── go.mod
+│   ├── Dockerfile
+│   ├── Makefile
+│   └── render.yaml             # Render config
+│
+├── DEPLOYMENT.md                # Deployment guide
+├── ARCHITECTURE.md              # Architecture docs
+└── README.md                    # This file
 ```
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 18+ and npm
-- Python 3.11+ (for algorithm service)
-- Supabase account (free tier works!)
-- Google Cloud Console account (for OAuth)
-
-### 1. Clone & Install
-
-```bash
-# Navigate to project
-cd wizard-connect
-
-# Install frontend dependencies
-npm install
-
-# (Optional) Install algorithm service dependencies
-cd algorithm-service
-pip install -r requirements.txt
-```
-
-### 2. Supabase Setup
-
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to SQL Editor and run the schema from `supabase/schema.sql`
-3. Enable Google OAuth in Authentication → Providers → Google
-4. Copy your project URL and anon key
-
-### 3. Environment Variables
-
-```bash
-# Copy example env file
-cp .env.example .env.local
-
-# Edit .env.local with your Supabase credentials
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
-
-### 4. Run Development Server
-
-```bash
-# Start Next.js frontend
-npm run dev
-
-# (Optional) Start algorithm service
-cd algorithm-service
-python src/main.py
-```
-
-Visit [http://localhost:3000](http://localhost:3000) to see the application!
-
-## 🎨 Pixel Art Design System
-
-The application uses a custom pixel art design system with Mapua's colors:
-
-### Colors
-- **Mapua Red**: `#D32F2F`
-- **Mapua Blue**: `#1976D2`
-- **Background**: `#FFF8F0` (cream)
-- **Pixel Borders**: `#000000` (black)
-
-### Components
-- `.pixel-card` - Card with pixel shadow
-- `.pixel-btn` - Retro button style
-- `.pixel-input` - Pixel-bordered input
-- `.pixel-progress-container` - Chunky progress bar
-- `.pixel-badge` - Small badge component
-
-### Animations
-- `.pixel-bounce` - Bouncing animation
-- `.pixel-pulse` - Pulsing glow
-- `.pixel-glow` - Glowing shadow effect
-
-## 📊 Matching Algorithm
-
-Our matching algorithm uses multiple factors:
-
-### Scoring Categories
-1. **Demographics (10%)** - Year, major similarity
-2. **Personality (30%)** - Cosine similarity on personality vectors
-3. **Values (25%)** - Alignment on family, career, religion, politics
-4. **Lifestyle (20%)** - Study habits, weekend preferences, cleanliness
-5. **Interests (15%)** - Jaccard similarity on shared hobbies
-
-### Bonuses
-- **Mutual Crush**: +20% compatibility boost
-- **One-way Crush**: +10% compatibility boost
-
-### Algorithm
-- Uses Hungarian algorithm for optimal matching
-- Generates 7 matches per user
-- Respects gender preferences
-- Groups users by preference pools
-
-## 🔐 Security
-
-- **Row Level Security (RLS)** on all Supabase tables
-- **JWT Authentication** via Supabase Auth
-- **Input Validation** on all forms
-- **CORS Protection** configured
-- **Environment Variables** for secrets
-
-## 📱 What's Built
-
-✅ Landing page with pixel art hero and countdown
-✅ Login page (ready for Google OAuth integration)
-✅ Multi-step survey system with 20+ questions
-✅ Profile management with pixel art avatars
-✅ Matches display with compatibility scores
-✅ Messaging interface (Feb 11-13 feature)
-✅ Supabase database schema with RLS
-✅ Python matching algorithm service
-✅ Complete pixel art design system
-
-## 🎓 Acknowledgments
-
-- Mapua Malayan Colleges Laguna
-- Supabase for the amazing backend platform
-- Next.js team for the excellent framework
-- All contributors and testers
 
 ---
 
-Made with 💕 for Mapua Cardinals
+## 🔐 Security Features
 
-**Wizard Connect** - Find Your Perfect Match! 🪄
+- **Authentication**: JWT tokens via Supabase Auth
+- **Authorization**: Row Level Security (RLS) in PostgreSQL
+- **Rate Limiting**: 100 requests/second per user
+- **CORS Protection**: Configurable allowed origins
+- **SQL Injection**: Prepared statements everywhere
+- **XSS Protection**: React auto-escaping
+- **Password Security**: Hashed by Supabase Auth
+- **Environment Variables**: Encrypted at rest
+
+---
+
+## 📊 Matching Algorithm
+
+The compatibility score is calculated as:
+
+```
+Score = (Personality × 30%) +
+        (Interests × 25%) +
+        (Values × 25%) +
+        (Lifestyle × 10%) +
+        (Mutual Crush × 10%)
+```
+
+- **Personality**: MBTI type compatibility matrix
+- **Interests**: Percentage of shared interests
+- **Values**: Alignment on core values
+- **Lifestyle**: Similar lifestyle preferences
+- **Mutual Crush**: Bonus if both listed each other
+
+---
+
+## 🛠️ Development
+
+### Frontend
+
+```bash
+cd wizard-connect
+
+# Development
+npm run dev
+
+# Build
+npm run build
+
+# Production
+npm run start
+
+# Lint
+npm run lint
+```
+
+### Backend
+
+```bash
+cd wizard-connect-backend
+
+# Development
+make run
+
+# Build
+make build
+
+# Test
+make test
+
+# Format
+make fmt
+
+# Clean
+make clean
+```
+
+---
+
+## 🚢 Deployment
+
+### Automated Deployment
+
+**Frontend (Vercel)**
+1. Connect GitHub repository to Vercel
+2. Set environment variables
+3. Auto-deploys on push to main
+
+**Backend (Render)**
+1. Connect GitHub repository to Render
+2. Set environment variables
+3. Auto-deploys on push to main
+
+**Database (Supabase)**
+- Runs on Supabase infrastructure
+- Automatic backups
+- 99.9% uptime SLA
+
+### Manual Deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+
+---
+
+## 📖 API Documentation
+
+### Base URL
+- Development: `http://localhost:8080`
+- Production: `https://wizard-connect-api.onrender.com`
+
+### Endpoints
+
+#### Authentication (Supabase)
+- `POST /auth/v1/signup` - Register
+- `POST /auth/v1/token?grant_type=password` - Login
+- `POST /auth/v1/oauth` - OAuth (Google)
+
+#### Users
+- `GET /api/v1/users/me` - Get profile
+- `PUT /api/v1/users/me` - Update profile
+
+#### Survey
+- `GET /api/v1/surveys` - Get responses
+- `POST /api/v1/surveys` - Submit survey
+
+#### Matches
+- `GET /api/v1/matches` - Get matches
+- `POST /api/v1/matches/generate` - Generate matches
+
+#### Messages
+- `GET /api/v1/messages/conversations` - Get conversations
+- `GET /api/v1/messages/conversations/:id` - Get messages
+- `POST /api/v1/messages/conversations/:id/messages` - Send message
+
+#### Crushes
+- `GET /api/v1/crushes` - Get crush list
+- `POST /api/v1/crushes` - Submit crushes
+
+---
+
+## 🧪 Testing
+
+### Backend Tests
+
+```bash
+cd wizard-connect-backend
+go test ./...
+```
+
+### Frontend Tests
+
+```bash
+cd wizard-connect
+npm test
+```
+
+---
+
+## 📈 Monitoring
+
+### Backend (Render)
+- Logs in Render dashboard
+- Health check: `/health`
+- Metrics: CPU, memory, response times
+
+### Frontend (Vercel)
+- Analytics in Vercel dashboard
+- Runtime logs
+- Deployment previews
+
+### Database (Supabase)
+- Database logs in Supabase dashboard
+- Auth logs
+- Query performance insights
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📝 License
+
+MIT License - see LICENSE file for details
+
+---
+
+## 🙏 Acknowledgments
+
+- **Mapua Malayan Colleges Laguna** - Our home institution
+- **Supabase** - Amazing backend-as-a-service
+- **Vercel** - Excellent Next.js hosting
+- **Render** - Great Go hosting
+- **Next.js Team** - Incredible framework
+
+---
+
+## 📞 Support
+
+For issues, questions, or contributions:
+- Open a GitHub issue
+- Check [ARCHITECTURE.md](ARCHITECTURE.md) for technical details
+- Check [DEPLOYMENT.md](DEPLOYMENT.md) for deployment help
+
+---
+
+**Built with ❤️ for Mapua students**
+
+*Find your magic this Valentine's Day! 🪄💕*
