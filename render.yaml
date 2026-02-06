@@ -18,5 +18,7 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: DATABASE_URL
+        sync: false
       - key: FRONTEND_URL
         value: https://wizard-connect.vercel.app

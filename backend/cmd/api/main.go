@@ -11,11 +11,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"wizard-connect/internal/config"
 	"wizard-connect/internal/infrastructure/database"
 	"wizard-connect/internal/interface/http/middleware"
 	"wizard-connect/internal/interface/http/routes"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -100,6 +101,11 @@ func main() {
 }
 
 func getDatabaseURL(cfg *config.Config) string {
+	// If DATABASE_URL is provided (e.g. for connection pooling or specific host), use it
+	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		return dbURL
+	}
+
 	return fmt.Sprintf(
 		"postgresql://postgres:%s@db.%s.supabase.co:5432/postgres?sslmode=require",
 		os.Getenv("DB_PASSWORD"),
