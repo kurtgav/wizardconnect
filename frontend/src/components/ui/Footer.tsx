@@ -4,7 +4,7 @@
 // ============================================
 
 import Image from 'next/image'
-import { PixelIcon } from '@/components/ui/PixelIcon'
+import { PixelIcon } from './PixelIcon'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()

@@ -23,15 +23,15 @@ type ServerConfig struct {
 }
 
 type SupabaseConfig struct {
-	URL    string
-	Key    string
+	URL       string
+	Key       string
 	JWTSecret string
 }
 
 type AuthConfig struct {
-	JWTSecret           string
-	AccessTokenExpiry   time.Duration
-	RefreshTokenExpiry  time.Duration
+	JWTSecret          string
+	AccessTokenExpiry  time.Duration
+	RefreshTokenExpiry time.Duration
 }
 
 type CORSConfig struct {
@@ -47,7 +47,7 @@ func Load() (*Config, error) {
 
 	cfg := &Config{
 		Server: ServerConfig{
-			Port:            getEnv("SERVER_PORT", "8080"),
+			Port:            getEnv("PORT", "8080"),
 			ReadTimeout:     15 * time.Second,
 			WriteTimeout:    15 * time.Second,
 			ShutdownTimeout: 10 * time.Second,
