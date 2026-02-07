@@ -15,7 +15,7 @@ export function Hero() {
       {/* City Skyline Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          src="/images/bg.gif"
+          src="/images/bg1.gif"
           alt="Pixel City Skyline"
           fill
           className="object-cover object-center"
@@ -58,9 +58,9 @@ export function Hero() {
           {/* Description */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: 0.7 }}
             transition={{ delay: 0.6 }}
-            className="max-w-xl space-y-6 font-mono text-[#2C3E50] text-sm md:text-base leading-relaxed bg-white/90 p-6 border-2 border-[#2C3E50] rounded-lg shadow-[4px_4px_0_rgba(44,62,80,0.2)] backdrop-blur-sm"
+            className="max-w-xl space-y-6 font-mono text-[#000000] text-sm md:text-base leading-relaxed bg-white/90 p-6 border-2 border-[#2C3E50] rounded-lg shadow-[4px_4px_0_rgba(44,62,80,0.2)] backdrop-blur-sm"
           >
             <p className="font-bold">Are you tired of endless swiping?</p>
             <p>
@@ -133,8 +133,8 @@ export function Hero() {
                 {/* Main Image Area */}
                 <div className="relative border-2 border-[#2C3E50] bg-white rounded-lg overflow-hidden shadow-[4px_4px_0_rgba(0,0,0,0.1)]">
                   <Image
-                    src="/images/winter-hero.png"
-                    alt="Winter Hero"
+                    src="/images/hero1.jpg"
+                    alt="Hero1"
                     width={800}
                     height={1000}
                     className="w-full h-auto object-cover"
