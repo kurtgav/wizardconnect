@@ -15,8 +15,8 @@ export function Hero() {
       {/* City Skyline Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          src="/images/bg1.gif"
-          alt="Pixel City Skyline"
+          src="/images/bg2.gif"
+          alt="flowers"
           fill
           className="object-cover object-center"
           priority
@@ -62,10 +62,9 @@ export function Hero() {
             transition={{ delay: 0.6 }}
             className="max-w-xl space-y-6 font-mono text-[#000000] text-sm md:text-base leading-relaxed bg-white/90 p-6 border-2 border-[#2C3E50] rounded-lg shadow-[4px_4px_0_rgba(44,62,80,0.2)] backdrop-blur-sm"
           >
-            <p className="font-bold">Are you tired of endless swiping?</p>
+            <p className="font-bold">February is about to get a little sweeter</p>
             <p>
-              We bring the <span className="bg-[#E6F3FF] px-1 font-bold border-b-2 border-[#FF6B9D]">magic back to dating</span> at Mapua. Using our advanced algorithm (and a little bit of pixel dust), we calculate compatibility based on what truly matters: your values, personality, and interests.
-            </p>
+              We’re setting the<span className="bg-[#E6F3FF] px-1 font-bold border-b-2 border-[#FF6B9D]">mood for meaningful</span> moments and memorable days ahead. Keep an eye out for what’s coming this month of love.</p>
           </motion.div>
 
           {/* Stats / Waitlist */}
@@ -105,7 +104,7 @@ export function Hero() {
 
         </div>
 
-        {/* Right Column: connection.exe Window */}
+        {/* Right Column: MMCL.exe Window */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -117,7 +116,7 @@ export function Hero() {
             <div className="bg-[#2C3E50] p-2 flex items-center justify-between border-b-2 border-white/10">
               <div className="flex items-center gap-2">
                 <PixelIcon name="heart_solid" size={16} className="text-[#FF6B9D]" />
-                <span className="font-mono text-white text-sm font-bold">connection.exe</span>
+                <span className="font-mono text-white text-sm font-bold">MapuaMCLSSC.exe</span>
               </div>
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-[#FF6B9D] border border-black/20" />
@@ -131,7 +130,7 @@ export function Hero() {
               {/* Pink Arcade Container */}
               <div className="bg-[#FF90B3] p-4 rounded-t-lg relative overflow-hidden">
                 {/* Main Image Area */}
-                <div className="relative border-2 border-[#2C3E50] bg-white rounded-lg overflow-hidden shadow-[4px_4px_0_rgba(0,0,0,0.1)]">
+                <div className="relative border-2 border-[#2C3E50] bg-white rounded-lg overflow-hidden shadow-[0_0_20px_#FF6B9D]">
                   <Image
                     src="/images/hero1.jpg"
                     alt="Hero1"
