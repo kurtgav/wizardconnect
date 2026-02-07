@@ -15,8 +15,8 @@ export function Hero() {
       {/* City Skyline Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image
-          src="/images/bg2.gif"
-          alt="flowers"
+          src="/images/bg8.png"
+          alt="red note"
           fill
           className="object-cover object-center"
           priority
@@ -126,11 +126,11 @@ export function Hero() {
             </div>
 
             {/* Window Content */}
-            <div className="p-1 bg-[#2C3E50]">
+            <div className="p-1 bg-[#A9BAAB]">
               {/* Pink Arcade Container */}
-              <div className="bg-[#FF90B3] p-4 rounded-t-lg relative overflow-hidden">
+              <div className="bg-[#8BA888] p-4 rounded-t-lg relative overflow-hidden">
                 {/* Main Image Area */}
-                <div className="relative border-2 border-[#2C3E50] bg-white rounded-lg overflow-hidden shadow-[0_0_20px_#FF6B9D]">
+                <div className="relative border-2 border-[#A9BAAB] bg-white rounded-lg overflow-hidden shadow-[0_0_20px_#A9BAAB]">
                   <Image
                     src="/images/hero1.jpg"
                     alt="Hero1"
