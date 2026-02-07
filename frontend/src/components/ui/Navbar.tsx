@@ -61,10 +61,28 @@ export function Navbar() {
         ? [...navLinks.slice(0, navLinks.length - 1), { href: '/admin/dashboard', label: 'ADMIN PANEL', icon: LayoutDashboard }, navLinks[navLinks.length - 1]]
         : navLinks
 
-    // Helper to determine active state
+    const [activeLink, setActiveLink] = useState('/')
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const current = window.location.pathname + window.location.hash
+            setActiveLink(current === '/' ? '/' : current)
+        }
+    }, [pathname])
+
+    const handleLinkClick = (href: string) => {
+        setActiveLink(href)
+    }
+
+    // Helper to determine active state (Replacing original isActive with simple check against state)
     const isActive = (path: string) => {
-        if (path === '/' && pathname === '/') return true
-        if (path !== '/' && pathname.startsWith(path)) return true
+        // Exact match for hash links / path
+        if (path === activeLink) return true
+        // Handle root case if activeLink is empty (unlikely with logic above but good safety)
+        if (path === '/' && activeLink === '/') return true
+        // Handle sub-routes like /stories matching activeLink /stories
+        if (path !== '/' && !path.includes('#') && activeLink.startsWith(path)) return true
+
         return false
     }
 
@@ -86,7 +104,7 @@ export function Navbar() {
 
                     {/* Logo (Optional/Implied) - Keeping it simple or existing logic */}
                     <Link href="/" className="flex items-center gap-3 shrink-0 md:mr-8">
-                        <div className="relative w-[3.5rem] h-[3.5rem] md:w-16 md:h-16">
+                        <div className="relative w-[3.5rem] h-[3.5rem] md:w-24 md:h-24">
                             <Image
                                 src="/images/wizardconnect-logo.png"
                                 alt="Logo"
@@ -106,10 +124,11 @@ export function Navbar() {
                                 <Link
                                     key={link.label}
                                     href={link.href}
+                                    onClick={() => handleLinkClick(link.href)}
                                     className={`
                                         font-black text-sm px-4 py-2 transition-all transform
                                         ${active
-                                            ? 'bg-[var(--retro-yellow)] text-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-navy)] -translate-y-1'
+                                            ? 'bg-[#A9BAAB] text-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_var(--retro-navy)] -translate-y-1'
                                             : 'text-[var(--retro-navy)] hover:text-[var(--retro-blue)] hover:translate-y-[-2px]'
                                         }
                                     `}
