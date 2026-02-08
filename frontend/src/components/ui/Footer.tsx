@@ -33,13 +33,13 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="relative overflow-hidden bg-[var(--retro-navy)] border-t-[8px] border-[var(--retro-yellow)]">
+    <footer className="relative overflow-hidden bg-[#1A2F25] border-t-[8px] border-[#A9BAAB]">
       {/* Retro Grid Background */}
       <div className="absolute inset-0 pointer-events-none opacity-10">
         <div className="absolute inset-0" style={{
           backgroundImage: `
-            linear-gradient(to right, var(--retro-yellow) 1px, transparent 1px),
-            linear-gradient(to bottom, var(--retro-yellow) 1px, transparent 1px)
+            linear-gradient(to right, #A9BAAB 1px, transparent 1px),
+            linear-gradient(to bottom, #A9BAAB 1px, transparent 1px)
           `,
           backgroundSize: '24px 24px',
         }} />
@@ -67,7 +67,7 @@ export default function Footer() {
               delay: i * 0.4,
             }}
           >
-            <div className="w-4 h-4 bg-[var(--retro-pink)] border-2 border-[var(--retro-yellow)]" />
+            <div className="w-4 h-4 bg-[#A9BAAB] border-2 border-[#D8E2DC]" />
           </motion.div>
         ))}
       </div>
@@ -79,14 +79,14 @@ export default function Footer() {
           <div className="lg:col-span-4 space-y-6">
             <Link href="/" className="inline-block group">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-[var(--retro-pink)] border-4 border-[var(--retro-yellow)] flex items-center justify-center shadow-[6px_6px_0_0_rgba(0,0,0,0.3)] group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-[2px_2px_0_0_rgba(0,0,0,0.3)] transition-all">
+                <div className="w-16 h-16 bg-[#4A6B56] border-4 border-[#A9BAAB] flex items-center justify-center shadow-[6px_6px_0_0_rgba(0,0,0,0.3)] group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-[2px_2px_0_0_rgba(0,0,0,0.3)] transition-all">
                   <img src="/images/wizardconnect-logo.png" alt="Logo" className="w-10 h-10 object-contain" />
                 </div>
                 <div>
-                  <h2 className="pixel-font text-2xl text-[var(--retro-yellow)] leading-none mb-1">
+                  <h2 className="pixel-font text-2xl text-[#A9BAAB] leading-none mb-1">
                     Wizard<br /><span className="text-white">Match</span>
                   </h2>
-                  <div className="flex items-center gap-2 text-xs text-[var(--retro-pink)] opacity-90">
+                  <div className="flex items-center gap-2 text-xs text-[#D8E2DC] opacity-90">
                     <Wand2 className="w-3 h-3" />
                     <span>EST. 2026</span>
                   </div>
@@ -99,8 +99,8 @@ export default function Footer() {
               Join thousands of wizards finding love and friendship.
             </p>
 
-            <div className="inline-flex items-center gap-2 bg-white/10 border-2 border-[var(--retro-yellow)] px-4 py-2 rounded-sm backdrop-blur-sm">
-              <Flower2 className="w-4 h-4 text-[var(--retro-yellow)]" />
+            <div className="inline-flex items-center gap-2 bg-white/10 border-2 border-[#A9BAAB] px-4 py-2 rounded-sm backdrop-blur-sm">
+              <Flower2 className="w-4 h-4 text-[#A9BAAB]" />
               <span className="pixel-font text-[10px] tracking-wide text-white">
                 BLOOM WITH LOVE
               </span>
@@ -109,8 +109,8 @@ export default function Footer() {
 
           {/* 2. LINKS SECTION (Platform - 2 Cols) */}
           <div className="lg:col-span-2 lg:col-start-6">
-            <h3 className="pixel-font text-sm text-[var(--retro-pink)] mb-6 flex items-center gap-2">
-              <Flower className="w-4 h-4 text-[var(--retro-yellow)]" />
+            <h3 className="pixel-font text-sm text-[#A9BAAB] mb-6 flex items-center gap-2">
+              <Flower className="w-4 h-4 text-[#D8E2DC]" />
               PLATFORM
             </h3>
             <ul className="space-y-4">
@@ -118,7 +118,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="font-medium text-white/60 hover:text-[var(--retro-yellow)] hover:pl-2 transition-all flex items-center gap-2 group text-sm"
+                    className="font-medium text-white/60 hover:text-[#A9BAAB] hover:pl-2 transition-all flex items-center gap-2 group text-sm"
                   >
                     <span className="opacity-0 group-hover:opacity-100 text-[8px]">▶</span>
                     {link.label}
@@ -130,8 +130,8 @@ export default function Footer() {
 
           {/* 3. LINKS SECTION (Legal - 2 Cols) */}
           <div className="lg:col-span-2">
-            <h3 className="pixel-font text-sm text-[var(--retro-pink)] mb-6 flex items-center gap-2">
-              <Heart className="w-4 h-4 text-[var(--retro-pink)] fill-current" />
+            <h3 className="pixel-font text-sm text-[#A9BAAB] mb-6 flex items-center gap-2">
+              <Heart className="w-4 h-4 text-[#D8E2DC] fill-current" />
               LEGAL
             </h3>
             <ul className="space-y-4">
@@ -139,7 +139,7 @@ export default function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="font-medium text-white/60 hover:text-[var(--retro-yellow)] hover:pl-2 transition-all flex items-center gap-2 group text-sm"
+                    className="font-medium text-white/60 hover:text-[#A9BAAB] hover:pl-2 transition-all flex items-center gap-2 group text-sm"
                   >
                     <span className="opacity-0 group-hover:opacity-100 text-[8px]">▶</span>
                     {link.label}
@@ -151,8 +151,8 @@ export default function Footer() {
 
           {/* 4. CONNECT SECTION (4 Cols) */}
           <div className="lg:col-span-4">
-            <h3 className="pixel-font text-sm text-[var(--retro-pink)] mb-6 flex items-center gap-2">
-              <Mail className="w-4 h-4 text-[var(--retro-yellow)]" />
+            <h3 className="pixel-font text-sm text-[#A9BAAB] mb-6 flex items-center gap-2">
+              <Mail className="w-4 h-4 text-[#D8E2DC]" />
               CONNECT
             </h3>
 
@@ -165,7 +165,7 @@ export default function Footer() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-12 h-12 border-4 border-[var(--retro-yellow)] bg-white flex items-center justify-center text-[var(--retro-navy)] hover:bg-[var(--retro-pink)] hover:text-white hover:border-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]"
+                    className="w-12 h-12 border-4 border-[#A9BAAB] bg-white flex items-center justify-center text-[#1A2F25] hover:bg-[#4A6B56] hover:text-white hover:border-white transition-all shadow-[4px_4px_0_0_rgba(0,0,0,0.3)]"
                     whileHover={{ scale: 1.1, rotate: -5 }}
                     whileTap={{ scale: 0.95 }}
                     title={social.label}
@@ -176,10 +176,10 @@ export default function Footer() {
               })}
             </div>
 
-            <div className="bg-white/5 border-2 border-[var(--retro-yellow)] p-4 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-8 h-8 bg-[var(--retro-yellow)] -mr-4 -mt-4 transform rotate-45"></div>
+            <div className="bg-white/5 border-2 border-[#A9BAAB] p-4 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-8 h-8 bg-[#A9BAAB] -mr-4 -mt-4 transform rotate-45"></div>
               <p className="pixel-font text-[10px] text-white/50 mb-1">EMAIL SUPPORT</p>
-              <a href="mailto:perfectmatch@gmail.com" className="text-sm font-bold text-white group-hover:text-[var(--retro-yellow)] transition-colors">
+              <a href="mailto:perfectmatch@gmail.com" className="text-sm font-bold text-white group-hover:text-[#A9BAAB] transition-colors">
                 ssc@mcl.edu.ph
               </a>
             </div>
@@ -192,7 +192,7 @@ export default function Footer() {
 
           <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/5">
             <span>Crafted with</span>
-            <Heart className="w-3 h-3 text-[var(--retro-pink)] fill-current animate-pulse" />
+            <Heart className="w-3 h-3 text-[#FF90B3] fill-current animate-pulse" />
             <span>by <span className="text-white">Kurt Gavin</span></span>
           </div>
         </div>
