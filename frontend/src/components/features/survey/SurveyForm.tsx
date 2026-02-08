@@ -5,29 +5,41 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { surveyQuestions, calculateProgress } from '@/lib/surveyQuestions'
 import { storage } from '@/lib/utils'
 
 interface SurveyFormProps {
   onComplete?: (responses: Record<string, any>) => void
+  existingResponses?: Record<string, any>
+  isComplete?: boolean
 }
 
-export function SurveyForm({ onComplete }: SurveyFormProps) {
+export function SurveyForm({ onComplete, existingResponses = {}, isComplete = false }: SurveyFormProps) {
   const [currentStep, setCurrentStep] = useState(0)
-  const [responses, setResponses] = useState<Record<string, any>>(() => {
-    // Load saved responses from localStorage
-    if (typeof window !== 'undefined') {
-      return storage.get<Record<string, any>>('survey_responses', {})
-    }
-    return {}
-  })
+  const [responses, setResponses] = useState<Record<string, any>>({})
   const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    if (existingResponses && Object.keys(existingResponses).length > 0) {
+      setResponses(existingResponses)
+      
+      // Find first unanswered question
+      const firstUnansweredIndex = surveyQuestions.findIndex(q => !existingResponses[q.id])
+      if (firstUnansweredIndex >= 0) {
+        setCurrentStep(firstUnansweredIndex)
+      } else {
+        setCurrentStep(0)
+      }
+    }
+  }, [existingResponses])
 
   const currentQuestion = surveyQuestions[currentStep]
   const progress = calculateProgress(Object.keys(responses).length)
   const canGoBack = currentStep > 0
   const canGoForward = responses[currentQuestion?.id] !== undefined || !currentQuestion?.required
+  const surveyComplete = currentStep >= surveyQuestions.length
+  const surveyComplete = currentStep >= surveyQuestions.length
 
   const saveResponse = (questionId: string, value: any) => {
     const newResponses = { ...responses, [questionId]: value }
@@ -40,10 +52,22 @@ export function SurveyForm({ onComplete }: SurveyFormProps) {
   const handleNext = () => {
     if (currentStep < surveyQuestions.length - 1) {
       setCurrentStep(currentStep + 1)
-    } else {
+    } else if (!surveyComplete) {
       // Survey complete
       handleComplete()
     }
+  }
+
+  const handleComplete = async () => {
+    setIsSaving(true)
+    try {
+      await onComplete?.(responses)
+    } catch (error) {
+      console.error('Error completing survey:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
   }
 
   const handleBack = () => {
@@ -52,15 +76,15 @@ export function SurveyForm({ onComplete }: SurveyFormProps) {
     }
   }
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     setIsSaving(true)
-
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await onComplete?.(responses)
+    } catch (error) {
+      console.error('Error completing survey:', error)
+    } finally {
       setIsSaving(false)
-      storage.remove('survey_responses')
-      onComplete?.(responses)
-    }, 1500)
+    }
   }
 
   const renderQuestionInput = () => {
@@ -209,8 +233,49 @@ export function SurveyForm({ onComplete }: SurveyFormProps) {
     return null
   }
 
+  if (isComplete) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-16">
+        <div className="pixel-card mb-8">
+          <div className="mb-6">
+            <span className="text-6xl">✓</span>
+          </div>
+          <h2 className="pixel-font-heading text-2xl font-bold mb-4" style={{ color: '#2C3E50' }}>
+            Survey Already Complete!
+          </h2>
+          <p className="pixel-font-body text-lg text-gray-600 mb-8">
+            Thank you for completing your survey. Your responses have been saved.
+          </p>
+          <button
+            onClick={() => onComplete?.(responses)}
+            className="pixel-btn pixel-btn-primary px-8 py-4"
+          >
+            Update Responses
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
+      {/* Existing Data Notice */}
+      {existingResponses && Object.keys(existingResponses).length > 0 && !isComplete && (
+        <div className="mb-6 pixel-card" style={{ background: '#E8F5FF', borderColor: '#D4F0FF' }}>
+          <div className="flex items-center gap-3 p-4">
+            <span className="text-2xl">📝</span>
+            <div>
+              <p className="pixel-font-heading text-sm font-bold" style={{ color: '#1976D2' }}>
+                Previous responses loaded
+              </p>
+              <p className="pixel-font-body text-xs" style={{ color: '#6B7280' }}>
+                {Object.keys(existingResponses).length} questions already answered. Continue where you left off.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Progress Bar */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">

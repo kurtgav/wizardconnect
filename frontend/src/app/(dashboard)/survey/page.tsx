@@ -1,19 +1,89 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { SurveyForm } from '@/components/features/survey/SurveyForm'
 import { useRouter } from 'next/navigation'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
+import { apiClient } from '@/lib/api-client'
+import type { SurveyResponse } from '@/types/api'
 
 export default function SurveyPage() {
   const router = useRouter()
+  const [loading, setLoading] = useState(true)
+  const [existingSurvey, setExistingSurvey] = useState<SurveyResponse | null>(null)
 
-  const handleSurveyComplete = (responses: Record<string, any>) => {
-    // In production, this would save to Supabase
-    console.log('Survey completed:', responses)
+  useEffect(() => {
+    loadSurveyData()
+  }, [])
 
-    // Show success message and redirect
-    alert('Survey completed successfully! You can now update your profile.')
-    router.push('/profile')
+  const loadSurveyData = async () => {
+    try {
+      setLoading(true)
+      const survey = await apiClient.getSurvey()
+      setExistingSurvey(survey)
+      setLoading(false)
+    } catch (error) {
+      console.error('Failed to load survey:', error)
+      setLoading(false)
+    }
+  }
+
+  const handleSurveyComplete = async (responses: Record<string, any>) => {
+    try {
+      setLoading(true)
+
+      // Calculate personality type from responses
+      const personalityType = responses.personality_result || ''
+      
+      // Calculate interests from responses
+      const interests = Object.entries(responses)
+        .filter(([key, value]) => key.startsWith('interest_') && value === true)
+        .map(([key]) => key.replace('interest_', '').toLowerCase())
+      
+      // Calculate values from responses
+      const values = Object.entries(responses)
+        .filter(([key, value]) => key.startsWith('value_') && value === true)
+        .map(([key]) => key.replace('value_', '').toLowerCase())
+
+      // Calculate lifestyle from responses
+      let lifestyle = ''
+      if (responses.study_habits === 'study_night') lifestyle = 'Night Owl'
+      else if (responses.study_habits === 'study_day') lifestyle = 'Early Bird'
+      else if (responses.study_habits === 'study_mixed') lifestyle = 'Flexible'
+
+      const submission = {
+        responses,
+        personality_type: personalityType,
+        interests,
+        values,
+        lifestyle,
+        is_complete: true
+      }
+
+      await apiClient.submitSurvey(submission)
+
+      // Success message and redirect
+      alert('Survey completed successfully! Your responses have been saved.')
+      router.push('/profile')
+    } catch (error) {
+      console.error('Failed to save survey:', error)
+      alert('Failed to save survey. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block bg-[var(--retro-yellow)] border-4 border-[var(--retro-navy)] px-6 py-3 mb-4 animate-pulse">
+            <p className="pixel-font text-lg text-[var(--retro-navy)]">LOADING...</p>
+          </div>
+          <p className="pixel-font-body text-sm text-gray-600">Fetching your wizard profile...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -21,14 +91,14 @@ export default function SurveyPage() {
       {/* Header Section */}
       <div className="text-center mb-10">
         <h1 className="pixel-font text-3xl md:text-5xl font-bold mb-4 text-[var(--retro-navy)] uppercase tracking-tighter">
-          Wizard<span className="text-[var(--retro-red)]">Match</span> Survey
-        </h1>
-        <div className="inline-block bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] px-4 py-1 transform -rotate-2 shadow-[4px_4px_0_0_var(--retro-navy)]">
-          <p className="pixel-font-body font-bold text-[var(--retro-navy)]">
-            FIND YOUR PLAYER 2
-          </p>
-        </div>
-      </div>
+           Wizard<span className="text-[var(--retro-red)]">Match</span> Survey
+         </h1>
+         <div className="inline-block bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] px-4 py-1 transform -rotate-2 shadow-[4px_4px_0_var(--retro-navy)]">
+           <p className="pixel-font-body font-bold text-[var(--retro-navy)]">
+             FIND YOUR PLAYER 2
+           </p>
+         </div>
+       </div>
 
       {/* Main Form Card */}
       <div className="pixel-card mb-8">
@@ -38,11 +108,17 @@ export default function SurveyPage() {
           </div>
           <div>
             <h2 className="pixel-font text-xl">Matchmaking Protocol</h2>
-            <p className="text-sm font-bold text-gray-500">COMPLETE ALL MISSIONS</p>
+            <p className="text-sm font-bold text-gray-500">
+              {existingSurvey?.is_complete ? 'UPDATE PROGRESS' : 'COMPLETE ALL MISSIONS'}
+            </p>
           </div>
         </div>
 
-        <SurveyForm onComplete={handleSurveyComplete} />
+        <SurveyForm 
+          onComplete={handleSurveyComplete}
+          existingResponses={existingSurvey?.responses || {}}
+          isComplete={existingSurvey?.is_complete || false}
+        />
       </div>
 
       {/* Info Card - Retro Style */}
@@ -55,7 +131,7 @@ export default function SurveyPage() {
         </div>
 
         <ul className="space-y-3 pixel-font-body text-base">
-          <TipItem icon="lock" text="Progress auto-saved. Return before Game Over (Feb 10)." />
+          <TipItem icon="lock" text="Progress auto-saved to database." />
           <TipItem icon="bubble" text="Mission Time: ~15-20 minutes." />
           <TipItem icon="target" text="Honesty increases Critical Hit chance (Match %)." />
           <TipItem icon="heart_solid" text="Crush List is optional optional loot." />
