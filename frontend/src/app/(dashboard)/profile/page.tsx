@@ -157,16 +157,16 @@ export default function ProfilePage() {
     try {
       setIsSaving(true)
 
-      const updateData: UserProfile = {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
+      const updateData: any = {
+        first_name: profile.firstName,
+        last_name: profile.lastName,
         bio: profile.bio,
         instagram: profile.instagram,
         phone: profile.phone,
-        contactPreference: profile.contactPreference,
+        contact_preference: profile.contactPreference,
         visibility: profile.visibility,
         gender: profile.gender || undefined,
-        genderPreference: profile.genderPreference,
+        gender_preference: profile.genderPreference,
       }
 
       await apiClient.updateProfile(updateData)
