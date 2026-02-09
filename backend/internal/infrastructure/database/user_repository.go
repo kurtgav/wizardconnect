@@ -152,91 +152,74 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entitie
 }
 
 func (r *UserRepository) Update(ctx context.Context, user *entities.User) error {
+	// Get current user data to check which fields to update
+	currentUser, err := r.GetByID(ctx, user.ID)
+	if err != nil {
+		// If user doesn't exist, create them
+		return r.Create(ctx, user)
+	}
+
 	// Build dynamic query with only non-empty fields
 	updates := []string{}
 	args := []interface{}{user.ID}
 	argIndex := 2
 
-	if user.FirstName != "" {
+	if user.FirstName != "" && user.FirstName != currentUser.FirstName {
 		updates = append(updates, fmt.Sprintf("first_name = $%d", argIndex))
 		args = append(args, user.FirstName)
 		argIndex++
 	}
-	if user.LastName != "" {
+	if user.LastName != "" && user.LastName != currentUser.LastName {
 		updates = append(updates, fmt.Sprintf("last_name = $%d", argIndex))
 		args = append(args, user.LastName)
 		argIndex++
 	}
-	if user.AvatarURL != "" {
+	if user.AvatarURL != "" && user.AvatarURL != currentUser.AvatarURL {
 		updates = append(updates, fmt.Sprintf("avatar_url = $%d", argIndex))
 		args = append(args, user.AvatarURL)
 		argIndex++
 	}
-	if user.Bio != "" {
+	if user.Bio != "" && user.Bio != currentUser.Bio {
 		updates = append(updates, fmt.Sprintf("bio = $%d", argIndex))
 		args = append(args, user.Bio)
 		argIndex++
 	}
-	if user.Instagram != "" {
+	if user.Instagram != "" && user.Instagram != currentUser.Instagram {
 		updates = append(updates, fmt.Sprintf("instagram = $%d", argIndex))
 		args = append(args, user.Instagram)
 		argIndex++
 	}
-	if user.Phone != "" {
+	if user.Phone != "" && user.Phone != currentUser.Phone {
 		updates = append(updates, fmt.Sprintf("phone = $%d", argIndex))
 		args = append(args, user.Phone)
 		argIndex++
 	}
-	if user.ContactPref != "" {
+	if user.ContactPref != "" && user.ContactPref != currentUser.ContactPref {
 		updates = append(updates, fmt.Sprintf("contact_preference = $%d", argIndex))
 		args = append(args, user.ContactPref)
 		argIndex++
 	}
-	if user.Visibility != "" {
+	if user.Visibility != "" && user.Visibility != currentUser.Visibility {
 		updates = append(updates, fmt.Sprintf("visibility = $%d", argIndex))
 		args = append(args, user.Visibility)
 		argIndex++
 	}
-	if user.Year != "" {
-		updates = append(updates, fmt.Sprintf("year = $%d", argIndex))
-		args = append(args, user.Year)
-		argIndex++
-	}
-	if user.Major != "" {
-		updates = append(updates, fmt.Sprintf("major = $%d", argIndex))
-		args = append(args, user.Major)
-		argIndex++
-	}
-	if user.Gender != "" {
-		updates = append(updates, fmt.Sprintf("gender = $%d", argIndex))
-		args = append(args, user.Gender)
-		argIndex++
-	}
-	if user.GenderPreference != "" {
-		updates = append(updates, fmt.Sprintf("gender_preference = $%d", argIndex))
-		args = append(args, user.GenderPreference)
-		argIndex++
-	}
 
-	// Always update updated_at
-	updates = append(updates, "updated_at = NOW()")
+	if len(updates) > 0 {
+		// Always update updated_at
+		updates = append(updates, "updated_at = NOW()")
+		query := fmt.Sprintf("UPDATE users SET %s WHERE id = $1", strings.Join(updates, ", "))
+		_, err := r.db.Exec(ctx, query, args...)
 
-	if len(updates) == 1 { // Only updated_at
-		return nil // Nothing to update
+		if err != nil {
+			return fmt.Errorf("update failed: %w", err)
+		}
+
+		// Update cache with fresh data
+		r.mu.Lock()
+		r.cache[user.ID] = user
+		r.mu.Unlock()
 	}
-
-	query := fmt.Sprintf("UPDATE users SET %s WHERE id = $1", strings.Join(updates, ", "))
-
-	_, err := r.db.Exec(ctx, query, args...)
-
-	if err != nil {
-		return fmt.Errorf("update failed: %w", err)
-	}
-
-	// Update cache with fresh data
-	r.mu.Lock()
-	r.cache[user.ID] = user
-	r.mu.Unlock()
 
 	return nil
 }
