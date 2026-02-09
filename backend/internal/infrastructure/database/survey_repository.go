@@ -27,11 +27,6 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 		survey.ID = uuid.New().String()
 	}
 
-	responsesJSON, err := json.Marshal(survey.Responses)
-	if err != nil {
-		return fmt.Errorf("failed to marshal responses: %w", err)
-	}
-
 	// Validate interests and values are not nil
 	if survey.Interests == nil {
 		survey.Interests = []string{}
@@ -40,24 +35,26 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 		survey.Values = []string{}
 	}
 
-	// Use two separate queries to avoid ON CONFLICT issues
-	// First, check if survey exists
-	existing, err := r.GetByUserID(ctx, survey.UserID)
-	if err != nil && err != sql.ErrNoRows {
-		return fmt.Errorf("failed to check existing survey: %w", err)
-	}
+	// Try to check if survey exists first
+	// If the table schema is wrong, we'll get an error
+	existing, checkErr := r.GetByUserID(ctx, survey.UserID)
 
-	if existing != nil {
+	if checkErr == nil && existing != nil {
 		// Update existing survey
 		survey.ID = existing.ID
 		survey.CreatedAt = existing.CreatedAt
+
+		responsesJSON, err := json.Marshal(survey.Responses)
+		if err != nil {
+			return fmt.Errorf("failed to marshal responses: %w", err)
+		}
 
 		query := `
 			UPDATE surveys
 			SET responses = $1,
 			    personality_type = $2,
 			    interests = $3,
-			    values = $4,
+			    "values" = $4,
 			    lifestyle = $5,
 			    is_complete = $6,
 			    completed_at = $7,
@@ -76,7 +73,13 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 			return fmt.Errorf("failed to execute survey update: %w", err)
 		}
 	} else {
-		// Insert new survey
+		// Insert new survey - check if it's a "not found" error or a schema error
+		if checkErr != sql.ErrNoRows {
+			// It's not a "no rows" error, likely a schema issue
+			// Try to insert anyway as new survey
+			return fmt.Errorf("database schema issue detected: %w. Please run fix_surveys_table.sql migration", checkErr)
+		}
+
 		now := time.Now()
 		survey.CreatedAt = now
 		survey.UpdatedAt = now
@@ -84,8 +87,13 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 			survey.CompletedAt = now
 		}
 
+		responsesJSON, err := json.Marshal(survey.Responses)
+		if err != nil {
+			return fmt.Errorf("failed to marshal responses: %w", err)
+		}
+
 		query := `
-			INSERT INTO surveys (id, user_id, responses, personality_type, interests, values, lifestyle, is_complete, completed_at, created_at, updated_at)
+			INSERT INTO surveys (id, user_id, responses, personality_type, interests, "values", lifestyle, is_complete, completed_at, created_at, updated_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		`
 
@@ -96,7 +104,7 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 		)
 
 		if err != nil {
-			return fmt.Errorf("failed to execute survey insert: %w", err)
+			return fmt.Errorf("failed to execute survey insert: %w. Please run fix_surveys_table.sql migration", err)
 		}
 	}
 
@@ -105,7 +113,7 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 
 func (r *SurveyRepository) GetByUserID(ctx context.Context, userID string) (*entities.SurveyResponse, error) {
 	query := `
-		SELECT id, user_id, responses, personality_type, interests, values, lifestyle,
+		SELECT id, user_id, responses, personality_type, interests, "values", lifestyle,
 		       is_complete, completed_at, created_at, updated_at
 		FROM surveys
 		WHERE user_id = $1
