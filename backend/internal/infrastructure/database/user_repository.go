@@ -164,20 +164,28 @@ func (r *UserRepository) Update(ctx context.Context, user *entities.User) error 
 	args := []interface{}{user.ID}
 	argIndex := 2
 
+	fmt.Printf("DEBUG: Comparing current user with incoming update\n")
+	fmt.Printf("DEBUG: Current.FirstName=%s, Incoming.FirstName=%s\n", currentUser.FirstName, user.FirstName)
+	fmt.Printf("DEBUG: Current.LastName=%s, Incoming.LastName=%s\n", currentUser.LastName, user.LastName)
+	fmt.Printf("DEBUG: Current.AvatarURL=%s, Incoming.AvatarURL=%s\n", currentUser.AvatarURL, user.AvatarURL)
+
 	if user.FirstName != "" && user.FirstName != currentUser.FirstName {
 		updates = append(updates, fmt.Sprintf("first_name = $%d", argIndex))
 		args = append(args, user.FirstName)
 		argIndex++
+		fmt.Printf("DEBUG: Will update first_name to: %s\n", user.FirstName)
 	}
 	if user.LastName != "" && user.LastName != currentUser.LastName {
 		updates = append(updates, fmt.Sprintf("last_name = $%d", argIndex))
 		args = append(args, user.LastName)
 		argIndex++
+		fmt.Printf("DEBUG: Will update last_name to: %s\n", user.LastName)
 	}
 	if user.AvatarURL != "" && user.AvatarURL != currentUser.AvatarURL {
 		updates = append(updates, fmt.Sprintf("avatar_url = $%d", argIndex))
 		args = append(args, user.AvatarURL)
 		argIndex++
+		fmt.Printf("DEBUG: Will update avatar_url to: %s (length: %d)\n", user.AvatarURL, len(user.AvatarURL))
 	}
 	if user.Bio != "" && user.Bio != currentUser.Bio {
 		updates = append(updates, fmt.Sprintf("bio = $%d", argIndex))

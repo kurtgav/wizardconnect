@@ -78,6 +78,7 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		Bio               *string `json:"bio"`
 		Instagram         *string `json:"instagram"`
 		Phone             *string `json:"phone"`
+		AvatarURL         *string `json:"avatar_url" alias:"avatarUrl"`
 		ContactPreference *string `json:"contact_preference" alias:"contactPreference"`
 		Visibility        *string `json:"visibility"`
 		Year              *string `json:"year"`
@@ -87,9 +88,12 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data", "details": err.Error()})
 		return
 	}
+
+	// Log full request body for debugging
+	fmt.Printf("DEBUG: Full update request: %+v\n", req)
 
 	fmt.Printf("DEBUG: Updating profile for userID=%s, email=%s\n", userID, email)
 
@@ -130,6 +134,9 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	if req.Phone != nil && *req.Phone != "" {
 		user.Phone = *req.Phone
 	}
+	if req.AvatarURL != nil && *req.AvatarURL != "" {
+		user.AvatarURL = *req.AvatarURL
+	}
 	if req.ContactPreference != nil && *req.ContactPreference != "" {
 		user.ContactPref = *req.ContactPreference
 	}
@@ -150,6 +157,7 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	fmt.Printf("DEBUG: Updating user with data: %+v\n", user)
+	fmt.Printf("DEBUG: AvatarURL received: %s\n", req.AvatarURL)
 
 	if err := ctrl.userRepo.Update(c.Request.Context(), user); err != nil {
 		fmt.Printf("DATABASE UPDATE ERROR: %v\n", err)
