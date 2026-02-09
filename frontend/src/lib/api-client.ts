@@ -21,6 +21,8 @@ import type {
 class APIClient {
   private baseURL: string
   private token: string | null = null
+  private cache: Map<string, { data: any; timestamp: number }> = new Map()
+  private cacheTTL = 30000 // 30 seconds cache for GET requests
 
   constructor(baseURL?: string) {
     this.baseURL = baseURL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
@@ -36,6 +38,16 @@ class APIClient {
         'Current baseURL:', this.baseURL
       )
     }
+  }
+
+  // Clear cache
+  clearCache() {
+    this.cache.clear()
+  }
+
+  // Clear specific endpoint cache
+  clearEndpointCache(endpoint: string) {
+    this.cache.delete(endpoint)
   }
 
   // Set authentication token
@@ -128,30 +140,54 @@ class APIClient {
     }
   }
 
-  // GET request
-  private async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' })
+  // GET request with caching
+  private async get<T>(endpoint: string, useCache = true): Promise<T> {
+    // Check cache for GET requests
+    if (useCache) {
+      const cached = this.cache.get(endpoint)
+      if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
+        return cached.data as T
+      }
+    }
+
+    const data = await this.request<T>(endpoint, { method: 'GET' })
+
+    // Cache the response
+    if (useCache) {
+      this.cache.set(endpoint, { data, timestamp: Date.now() })
+    }
+
+    return data
   }
 
   // POST request
   private async post<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
+    const result = await this.request<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
     })
+    // Clear cache on POST
+    this.clearCache()
+    return result
   }
 
   // PUT request
   private async put<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
+    const result = await this.request<T>(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
     })
+    // Clear cache on PUT
+    this.clearCache()
+    return result
   }
 
   // DELETE request
   private async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' })
+    const result = await this.request<T>(endpoint, { method: 'DELETE' })
+    // Clear cache on DELETE
+    this.clearCache()
+    return result
   }
 
   // ===================

@@ -3,16 +3,54 @@ package database
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
 
 	"wizard-connect/internal/domain/entities"
 )
 
 type UserRepository struct {
-	db *Database
+	db     *Database
+	cache  map[string]*entities.User
+	mu     sync.RWMutex
+	ttl    time.Duration
+	stopCh chan struct{}
 }
 
 func NewUserRepository(db *Database) *UserRepository {
-	return &UserRepository{db: db}
+	repo := &UserRepository{
+		db:     db,
+		cache:  make(map[string]*entities.User),
+		ttl:    5 * time.Minute, // Cache entries for 5 minutes
+		stopCh: make(chan struct{}),
+	}
+
+	// Start cache cleanup goroutine
+	go repo.cacheCleanup()
+
+	return repo
+}
+
+// cacheCleanup periodically removes expired cache entries
+func (r *UserRepository) cacheCleanup() {
+	ticker := time.NewTicker(r.ttl)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			r.mu.Lock()
+			r.cache = make(map[string]*entities.User) // Clear cache
+			r.mu.Unlock()
+		case <-r.stopCh:
+			return
+		}
+	}
+}
+
+// Close stops the cache cleanup goroutine
+func (r *UserRepository) Close() {
+	close(r.stopCh)
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *entities.User) error {
@@ -42,10 +80,28 @@ func (r *UserRepository) Create(ctx context.Context, user *entities.User) error 
 		user.Year, user.Major, user.Gender, user.GenderPreference,
 	)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Cache the new user
+	r.mu.Lock()
+	r.cache[user.ID] = user
+	r.mu.Unlock()
+
+	return nil
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User, error) {
+	// Try cache first
+	r.mu.RLock()
+	if user, found := r.cache[id]; found {
+		r.mu.RUnlock()
+		return user, nil
+	}
+	r.mu.RUnlock()
+
+	// Cache miss - query database
 	query := `
 		SELECT id, email, first_name, last_name, avatar_url, bio, instagram, phone,
 		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at
@@ -63,6 +119,11 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
+
+	// Update cache
+	r.mu.Lock()
+	r.cache[id] = user
+	r.mu.Unlock()
 
 	return user, nil
 }
@@ -105,7 +166,16 @@ func (r *UserRepository) Update(ctx context.Context, user *entities.User) error 
 		user.Year, user.Major, user.Gender, user.GenderPreference,
 	)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Update cache with fresh data
+	r.mu.Lock()
+	r.cache[user.ID] = user
+	r.mu.Unlock()
+
+	return nil
 }
 
 func (r *UserRepository) Delete(ctx context.Context, id string) error {

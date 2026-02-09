@@ -16,6 +16,7 @@ import (
 	"wizard-connect/internal/interface/http/middleware"
 	"wizard-connect/internal/interface/http/routes"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,17 +27,28 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// Set Gin mode
-	if cfg.Server.Environment == "production" {
-		gin.SetMode(gin.ReleaseMode)
+	// Set Gin mode based on environment or explicit override
+	env := os.Getenv("GIN_MODE")
+	if env == "" && cfg.Server.Environment == "production" {
+		env = "release"
+	}
+	if env != "" {
+		gin.SetMode(env)
 	}
 
-	// Initialize database
-	db, err := database.NewDatabase(getDatabaseURL(cfg))
+	// Initialize database with optimized connection pool
+	dbURL := getDatabaseURL(cfg)
+	db, err := database.NewDatabase(dbURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
+
+	// Configure database connection pool for performance
+	db.DB.SetMaxOpenConns(getEnvAsInt("DB_MAX_OPEN_CONNS", 25))
+	db.DB.SetMaxIdleConns(getEnvAsInt("DB_MAX_IDLE_CONNS", 10))
+	db.DB.SetConnMaxLifetime(getEnvAsDuration("DB_CONN_MAX_LIFETIME", 5*time.Minute))
+	db.DB.SetConnMaxIdleTime(getEnvAsDuration("DB_CONN_MAX_IDLETIME", 1*time.Minute))
 
 	// Run auto-migrations
 	if err := db.AutoMigrate(context.Background()); err != nil {
@@ -46,7 +58,8 @@ func main() {
 	// Create Gin router
 	router := gin.New()
 
-	// Global middleware
+	// Global middleware - compression first, then recovery, then logging
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.Use(gin.Recovery())
 	router.Use(gin.Logger())
 	router.Use(middleware.NewCORS(middleware.CORSConfig{
@@ -131,4 +144,23 @@ func getProjectID(url string) string {
 		return parts[0]
 	}
 	return ""
+}
+
+func getEnvAsInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		var result int
+		if _, err := fmt.Sscanf(value, "%d", &result); err == nil {
+			return result
+		}
+	}
+	return defaultValue
+}
+
+func getEnvAsDuration(key string, defaultValue time.Duration) time.Duration {
+	if value := os.Getenv(key); value != "" {
+		if result, err := time.ParseDuration(value); err == nil {
+			return result
+		}
+	}
+	return defaultValue
 }
