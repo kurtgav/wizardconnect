@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Press_Start_2P, VT323, Inter } from "next/font/google";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { CampaignProvider } from "@/contexts/CampaignContext";
 
 const pressStart2P = Press_Start_2P({
   weight: "400",
@@ -45,9 +44,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${pressStart2P.variable} ${vt323.variable} ${inter.variable} antialiased`}>
         <AuthProvider>
-          <CampaignProvider>
-            {children}
-          </CampaignProvider>
+          {children}
         </AuthProvider>
       </body>
     </html>

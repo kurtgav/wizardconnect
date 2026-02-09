@@ -157,12 +157,6 @@ func (ctrl *MessageController) SendMessage(c *gin.Context) {
 		return
 	}
 
-	// Campaign date enforcement
-	if !database.IsMessagingPeriod() {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Messaging is not allowed at this time"})
-		return
-	}
-
 	if req.Content == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Message content cannot be empty"})
 		return

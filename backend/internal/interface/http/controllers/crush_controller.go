@@ -60,12 +60,6 @@ func (ctrl *CrushController) SubmitCrushes(c *gin.Context) {
 		return
 	}
 
-	// Campaign date enforcement
-	if !database.IsSurveyOpen() {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Crush list submission is not available at this time"})
-		return
-	}
-
 	// Delete existing crushes for this user
 	// TODO: Implement delete by user ID
 

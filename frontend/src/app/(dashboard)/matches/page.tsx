@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
 import { apiClient } from '@/lib/api-client'
 import { useRouter } from 'next/navigation'
-import { useCampaign } from '@/contexts/CampaignContext'
 
 interface Match {
   id: string
@@ -27,7 +26,6 @@ interface Match {
 
 export default function MatchesPage() {
   const router = useRouter()
-  const { status: campaignStatus } = useCampaign()
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -99,46 +97,8 @@ export default function MatchesPage() {
         </div>
       </div>
 
-      {/* Campaign Reveal Logic */}
-      {!campaignStatus?.results_released ? (
-        <div className="max-w-3xl mx-auto">
-          <div className="pixel-card text-center py-20 bg-white relative overflow-hidden">
-            {/* Background Magic/Sparkles */}
-            <div className="absolute inset-0 opacity-10 pointer-events-none">
-              <div className="absolute top-10 left-10 animate-bounce">
-                <PixelIcon name="star" size={24} />
-              </div>
-              <div className="absolute bottom-20 right-20 animate-pulse">
-                <PixelIcon name="sparkle" size={32} />
-              </div>
-            </div>
-
-            <div className="relative z-10">
-              <div className="inline-block p-4 bg-[var(--retro-blue)] border-4 border-[var(--retro-navy)] rounded-full mb-8 shadow-lg">
-                <PixelIcon name="lock" size={64} className="text-white" />
-              </div>
-
-              <h2 className="pixel-font text-2xl md:text-3xl text-[var(--retro-navy)] mb-4 uppercase tracking-tighter">
-                MATCHES ARE CURRENTLY <span className="text-[var(--retro-red)]">ENCRYPTED</span>
-              </h2>
-
-              <p className="pixel-font-body text-base text-gray-600 max-w-lg mx-auto mb-10 leading-relaxed">
-                Our crystal ball is working overtime to find your perfect connection.
-                Matches will be revealed simultaneously to everyone on <span className="font-bold text-[var(--retro-navy)]">February 14th</span>.
-              </p>
-
-              <div className="bg-[var(--retro-yellow)] border-4 border-[var(--retro-navy)] p-6 inline-block shadow-[8px_8px_0_var(--retro-navy)]">
-                <p className="pixel-font-body text-xs text-[var(--retro-navy)] font-bold mb-2 uppercase">
-                  MATCHES PREPARED
-                </p>
-                <div className="flex items-center justify-center gap-2">
-                  <span className="pixel-font text-4xl text-[var(--retro-red)]">???</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : matches.length === 0 ? (
+      {/* No Matches State */}
+      {matches.length === 0 ? (
         <div className="pixel-card text-center py-16">
           <PixelIcon name="chick" size={64} />
           <h2 className="pixel-font text-2xl text-[var(--retro-navy)] mb-4 mt-4">
@@ -158,7 +118,7 @@ export default function MatchesPage() {
       ) : null}
 
       {/* Matches Grid */}
-      {campaignStatus?.results_released && matches.length > 0 && (
+      {matches.length > 0 && (
         <div className="space-y-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="pixel-font text-xl text-[var(--retro-navy)]">

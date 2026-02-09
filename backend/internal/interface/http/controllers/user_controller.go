@@ -65,12 +65,6 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// Campaign date enforcement
-	if !database.IsProfileUpdatePeriod() {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Profile updates are not allowed at this time"})
-		return
-	}
-
 	// Get existing user
 	user, err := ctrl.userRepo.GetByID(c.Request.Context(), userID)
 	if err != nil {

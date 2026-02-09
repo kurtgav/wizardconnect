@@ -7,7 +7,6 @@ import { LucideIcon } from 'lucide-react'
 import { apiClient } from '@/lib/api-client'
 import type { User, UserProfile } from '@/types/api'
 import { useAuth } from '@/contexts/AuthContext'
-import { useCampaign } from '@/contexts/CampaignContext'
 
 interface SelectOption {
   value: string
@@ -99,7 +98,6 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
 
   const { userProfile: contextProfile, loading: authLoading } = useAuth()
-  const { status: campaignStatus } = useCampaign()
 
   // Start in view mode (false), switch to true to edit
   const [isEditing, setIsEditing] = useState(false)
@@ -356,27 +354,15 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Edit Button or Locked Message */}
+                {/* Edit Button */}
                 <div className="flex flex-col items-end mt-8 gap-3">
-                  {campaignStatus?.profile_update_active ? (
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="bg-[var(--retro-yellow)] text-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)] px-6 py-3 flex items-center gap-3 hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_var(--retro-navy)] transition-all active:translate-y-[0px] active:shadow-[2px_2px_0_0_var(--retro-navy)] w-full md:w-auto justify-center"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      <span className="pixel-font text-sm uppercase">EDIT PROFILE</span>
-                    </button>
-                  ) : (
-                    <div className="w-full md:w-auto">
-                      <div className="bg-gray-100 text-gray-500 border-2 border-gray-300 px-6 py-3 flex items-center gap-3 cursor-not-allowed opacity-70">
-                        <Shield className="w-4 h-4" />
-                        <span className="pixel-font text-sm uppercase">PROFILE LOCKED</span>
-                      </div>
-                      <p className="font-[family-name:var(--font-vt323)] text-sm text-gray-500 mt-2 text-right">
-                        Character editing is only available during the profile update window.
-                      </p>
-                    </div>
-                  )}
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="bg-[var(--retro-yellow)] text-[var(--retro-navy)] border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)] px-6 py-3 flex items-center gap-3 hover:translate-y-[-2px] hover:shadow-[6px_6px_0_0_var(--retro-navy)] transition-all active:translate-y-[0px] active:shadow-[2px_2px_0_0_var(--retro-navy)] w-full md:w-auto justify-center"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    <span className="pixel-font text-sm uppercase">EDIT PROFILE</span>
+                  </button>
                 </div>
 
               </div>

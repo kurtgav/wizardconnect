@@ -2,7 +2,6 @@
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Navbar } from '@/components/ui/Navbar'
-import { CampaignPhaseBanner } from '@/components/campaign/CampaignPhaseBanner'
 
 export default function DashboardLayout({
   children,
@@ -12,7 +11,6 @@ export default function DashboardLayout({
   return (
     <ProtectedRoute>
       <div className="min-h-screen flex flex-col bg-[var(--retro-cream)]">
-        <CampaignPhaseBanner />
         {/* Global Navbar handles all navigation state */}
         <Navbar />
 

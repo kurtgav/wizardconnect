@@ -42,17 +42,6 @@ func (ctrl *MatchController) GetMatches(c *gin.Context) {
 		return
 	}
 
-	// Campaign date enforcement: Hide details until results are released
-	if !database.IsResultsReleased() {
-		c.JSON(http.StatusOK, gin.H{
-			"data":             []interface{}{},
-			"results_released": false,
-			"match_count":      len(matches),
-			"message":          "Matches will be revealed on February 14th!",
-		})
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"data":             matches,
 		"results_released": true,

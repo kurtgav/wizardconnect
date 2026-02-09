@@ -6,11 +6,9 @@ import { useRouter } from 'next/navigation'
 import { PixelIcon, PixelIconName } from '@/components/ui/PixelIcon'
 import { apiClient } from '@/lib/api-client'
 import type { SurveyResponse } from '@/types/api'
-import { useCampaign } from '@/contexts/CampaignContext'
 
 export default function SurveyPage() {
   const router = useRouter()
-  const { status, loading: campaignLoading } = useCampaign()
   const [loading, setLoading] = useState(true)
   const [existingSurvey, setExistingSurvey] = useState<SurveyResponse | null>(null)
 
@@ -112,38 +110,16 @@ export default function SurveyPage() {
           <div>
             <h2 className="pixel-font text-xl">Matchmaking Protocol</h2>
             <p className="text-sm font-bold text-gray-500">
-              {status?.survey_active
-                ? (existingSurvey?.is_complete ? 'UPDATE PROGRESS' : 'COMPLETE ALL MISSIONS')
-                : 'MISSION ARCHIVED'}
+              {existingSurvey?.is_complete ? 'UPDATE PROGRESS' : 'COMPLETE ALL MISSIONS'}
             </p>
           </div>
         </div>
 
-        {status?.survey_active ? (
-          <SurveyForm
-            onComplete={handleSurveyComplete}
-            existingResponses={existingSurvey?.responses || {}}
-            isComplete={existingSurvey?.is_complete || false}
-          />
-        ) : (
-          <div className="py-12 text-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg">
-            <div className="mb-4 inline-block opacity-50 grayscale">
-              <PixelIcon name="lock" size={64} />
-            </div>
-            <h3 className="pixel-font text-xl text-gray-600 mb-2">SURVEY IS CLOSED</h3>
-            <p className="pixel-font-body text-sm text-gray-500 max-w-md mx-auto">
-              The survey period has ended. Matches are currently being generated.
-              Check the countdown above for the reveal!
-            </p>
-            {existingSurvey?.is_complete && (
-              <div className="mt-8 p-4 bg-green-50 border-2 border-green-200 inline-block">
-                <p className="pixel-font-body text-xs text-green-700 font-bold">
-                  ✓ YOUR RESPONSES WERE SUCCESSFULLY SAVED
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+        <SurveyForm
+          onComplete={handleSurveyComplete}
+          existingResponses={existingSurvey?.responses || {}}
+          isComplete={existingSurvey?.is_complete || false}
+        />
       </div>
 
       {/* Info Card - Retro Style */}

@@ -71,12 +71,6 @@ func (ctrl *SurveyController) SubmitSurvey(c *gin.Context) {
 		return
 	}
 
-	// Campaign date enforcement
-	if !database.IsSurveyOpen() {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Survey is not open for submissions at this time"})
-		return
-	}
-
 	now := time.Now()
 
 	survey := &entities.SurveyResponse{
