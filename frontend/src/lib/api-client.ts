@@ -105,6 +105,7 @@ class APIClient {
         if (isJson) {
           const error = await response.json().catch(() => ({ error: 'Unknown JSON error' }))
           console.error(`API Error (${response.status} - ${endpoint}):`, error)
+          // Include full error details in thrown error
           throw new Error(error.error || error.message || `Request failed with status ${response.status}`)
         } else {
           const text = await response.text()
@@ -130,9 +131,12 @@ class APIClient {
 
     } catch (error) {
       console.error(`Request Failed: ${endpoint}`, error)
+      console.error('Full error details:', error)
+
       if (!token && endpoint.includes('/users/me')) {
         console.warn("Request failed and no token was present for /users/me call. This might be a race condition.")
       }
+
       if (error instanceof Error) {
         throw error
       }

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"wizard-connect/internal/domain/entities"
 
@@ -39,28 +40,64 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 		survey.Values = []string{}
 	}
 
-	query := `
-		INSERT INTO surveys (id, user_id, responses, personality_type, interests, values, lifestyle, is_complete, completed_at, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-		ON CONFLICT (user_id) DO UPDATE
-		SET responses = EXCLUDED.responses,
-		    personality_type = EXCLUDED.personality_type,
-		    interests = EXCLUDED.interests,
-		    values = EXCLUDED.values,
-		    lifestyle = EXCLUDED.lifestyle,
-		    is_complete = EXCLUDED.is_complete,
-		    completed_at = EXCLUDED.completed_at,
-		    updated_at = NOW()
-	`
+	// Use two separate queries to avoid ON CONFLICT issues
+	// First, check if survey exists
+	existing, err := r.GetByUserID(ctx, survey.UserID)
+	if err != nil && err != sql.ErrNoRows {
+		return fmt.Errorf("failed to check existing survey: %w", err)
+	}
 
-	_, err = r.db.Exec(ctx, query,
-		survey.ID, survey.UserID, responsesJSON, survey.PersonalityType,
-		pq.Array(survey.Interests), pq.Array(survey.Values), survey.Lifestyle, survey.IsComplete,
-		survey.CompletedAt, survey.CreatedAt, survey.UpdatedAt,
-	)
+	if existing != nil {
+		// Update existing survey
+		survey.ID = existing.ID
+		survey.CreatedAt = existing.CreatedAt
 
-	if err != nil {
-		return fmt.Errorf("failed to execute survey insert/update: %w", err)
+		query := `
+			UPDATE surveys
+			SET responses = $1,
+			    personality_type = $2,
+			    interests = $3,
+			    values = $4,
+			    lifestyle = $5,
+			    is_complete = $6,
+			    completed_at = $7,
+			    updated_at = NOW()
+			WHERE user_id = $8
+		`
+
+		_, err = r.db.Exec(ctx, query,
+			responsesJSON, survey.PersonalityType,
+			pq.Array(survey.Interests), pq.Array(survey.Values),
+			survey.Lifestyle, survey.IsComplete, survey.CompletedAt,
+			survey.UserID,
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to execute survey update: %w", err)
+		}
+	} else {
+		// Insert new survey
+		now := time.Now()
+		survey.CreatedAt = now
+		survey.UpdatedAt = now
+		if survey.IsComplete {
+			survey.CompletedAt = now
+		}
+
+		query := `
+			INSERT INTO surveys (id, user_id, responses, personality_type, interests, values, lifestyle, is_complete, completed_at, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		`
+
+		_, err = r.db.Exec(ctx, query,
+			survey.ID, survey.UserID, responsesJSON, survey.PersonalityType,
+			pq.Array(survey.Interests), pq.Array(survey.Values), survey.Lifestyle, survey.IsComplete,
+			survey.CompletedAt, survey.CreatedAt, survey.UpdatedAt,
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to execute survey insert: %w", err)
+		}
 	}
 
 	return nil

@@ -36,7 +36,7 @@ func (ctrl *MatchController) GetMatches(c *gin.Context) {
 		return
 	}
 
-	matches, err := ctrl.matchRepo.GetByUserID(c.Request.Context(), userID)
+	matches, err := ctrl.matchRepo.GetByUserIDWithUserDetails(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve matches"})
 		return

@@ -61,14 +61,20 @@ export default function SurveyPage() {
         is_complete: true
       }
 
-      await apiClient.submitSurvey(submission)
+      console.log('Submitting survey:', submission)
+      const result = await apiClient.submitSurvey(submission)
+      console.log('Survey save result:', result)
 
       // Success message and redirect
       alert('Survey completed successfully! Your responses have been saved.')
       router.push('/profile')
     } catch (error) {
       console.error('Failed to save survey:', error)
-      alert('Failed to save survey. Please try again.')
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      })
+      alert(`Failed to save survey: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
