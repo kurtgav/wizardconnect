@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 
 	"wizard-connect/internal/domain/entities"
@@ -10,10 +9,10 @@ import (
 )
 
 type campaignRepositoryImpl struct {
-	db *sql.DB
+	db *Database
 }
 
-func NewCampaignRepository(db *sql.DB) repositories.CampaignRepository {
+func NewCampaignRepository(db *Database) repositories.CampaignRepository {
 	return &campaignRepositoryImpl{db: db}
 }
 
@@ -33,7 +32,7 @@ func (r *campaignRepositoryImpl) Create(ctx context.Context, campaign *entities.
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 	`
 
-	_, err = r.db.ExecContext(ctx, query,
+	_, err = r.db.Exec(ctx, query,
 		campaign.ID,
 		campaign.Name,
 		campaign.SurveyOpenDate,
@@ -67,7 +66,7 @@ func (r *campaignRepositoryImpl) GetByID(ctx context.Context, id string) (*entit
 	var campaign entities.Campaign
 	var configJSON []byte
 
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
+	err := r.db.QueryRow(ctx, query, id).Scan(
 		&campaign.ID,
 		&campaign.Name,
 		&campaign.SurveyOpenDate,
@@ -106,7 +105,7 @@ func (r *campaignRepositoryImpl) GetAll(ctx context.Context) ([]*entities.Campai
 		ORDER BY created_at DESC
 	`
 
-	rows, err := r.db.QueryContext(ctx, query)
+	rows, err := r.db.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +174,7 @@ func (r *campaignRepositoryImpl) Update(ctx context.Context, campaign *entities.
 		WHERE id = $1
 	`
 
-	_, err = r.db.ExecContext(ctx, query,
+	_, err = r.db.Exec(ctx, query,
 		campaign.ID,
 		campaign.Name,
 		campaign.SurveyOpenDate,
@@ -197,6 +196,6 @@ func (r *campaignRepositoryImpl) Update(ctx context.Context, campaign *entities.
 func (r *campaignRepositoryImpl) Delete(ctx context.Context, id string) error {
 	query := `DELETE FROM campaigns WHERE id = $1`
 
-	_, err := r.db.ExecContext(ctx, query, id)
+	_, err := r.db.Exec(ctx, query, id)
 	return err
 }

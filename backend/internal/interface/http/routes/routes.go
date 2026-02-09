@@ -18,7 +18,7 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	crushRepo := database.NewCrushRepository(db)
 	messageRepo := database.NewMessageRepository(db)
 	conversationRepo := database.NewConversationRepository(db)
-	campaignRepo := database.NewCampaignRepository(db.DB)
+	campaignRepo := database.NewCampaignRepository(db)
 	adminRepo := database.NewAdminRepository(db)
 
 	// Initialize services
