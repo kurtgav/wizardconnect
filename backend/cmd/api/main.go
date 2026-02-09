@@ -80,6 +80,45 @@ func main() {
 		})
 	})
 
+	// Debug endpoint to check database schema (admin only)
+	router.GET("/api/v1/debug/schema", func(c *gin.Context) {
+		userID, exists := middleware.GetUserID(c)
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Not authorized"})
+			return
+		}
+
+		// Check if user is admin
+		var isAdmin int
+		err := db.DB.QueryRow("SELECT COUNT(*) FROM admin_users WHERE user_id = $1", userID).Scan(&isAdmin)
+		if err != nil || isAdmin == 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Admin access required"})
+			return
+		}
+
+		// Get matches table schema
+		var columns []string
+		rows, err := db.DB.Query("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'matches' AND table_schema = 'public' ORDER BY ordinal_position")
+		if err == nil {
+			defer rows.Close()
+			for rows.Next() {
+				var colName, dataType string
+				rows.Scan(&colName, &dataType)
+				columns = append(columns, fmt.Sprintf("%s (%s)", colName, dataType))
+			}
+		}
+
+		// Get matches table count
+		var matchesCount int
+		db.DB.QueryRow("SELECT COUNT(*) FROM matches").Scan(&matchesCount)
+
+		c.JSON(http.StatusOK, gin.H{
+			"matches_table_columns": columns,
+			"matches_count":         matchesCount,
+			"database_status":       "connected",
+		})
+	})
+
 	// API routes
 	api := router.Group("/api/v1")
 	api.Use(rateLimiter.RateLimit())
