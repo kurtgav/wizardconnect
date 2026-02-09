@@ -31,6 +31,14 @@ func (r *SurveyRepository) CreateOrUpdate(ctx context.Context, survey *entities.
 		return fmt.Errorf("failed to marshal responses: %w", err)
 	}
 
+	// Validate interests and values are not nil
+	if survey.Interests == nil {
+		survey.Interests = []string{}
+	}
+	if survey.Values == nil {
+		survey.Values = []string{}
+	}
+
 	query := `
 		INSERT INTO surveys (id, user_id, responses, personality_type, interests, values, lifestyle, is_complete, completed_at, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -67,9 +68,13 @@ func (ctrl *SurveyController) SubmitSurvey(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request: " + err.Error()})
 		return
 	}
+
+	// Log survey submission for debugging
+	fmt.Printf("Survey submission - UserID: %s, IsComplete: %v, PersonalityType: %s, Interests: %v, Values: %v\n",
+		userID, req.IsComplete, req.PersonalityType, req.Interests, req.Values)
 
 	now := time.Now()
 
