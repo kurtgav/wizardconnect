@@ -285,13 +285,13 @@ export default function ProfilePage() {
             <div className="w-6 h-6 bg-[var(--retro-yellow)] flex items-center justify-center border-2 border-[var(--retro-navy)]">
               <UserIcon className="w-4 h-4 text-[var(--retro-navy)]" />
             </div>
-            <span className="pixel-font text-white text-xs tracking-widest hidden md:inline">WIZARD_OS://SYSTEM_v2.1_PROFILE_MANAGER</span>
-            <span className="pixel-font text-white text-xs tracking-widest md:hidden">v2.1_USER</span>
+            <span className="pixel-font text-white text-xs tracking-widest hidden md:inline">STUDENT PROFILE</span>
+            <span className="pixel-font text-white text-xs tracking-widest md:hidden">MMCL</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center bg-black/20 rounded px-2 py-0.5 gap-2 mr-4">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="pixel-font text-[8px] text-white">CORE_SYNC_OK</span>
+              <span className="pixel-font text-[8px] text-white">ACTIVE</span>
             </div>
             <button onClick={() => isEditing ? setIsEditing(false) : null} className="w-6 h-6 bg-[var(--retro-white)]/10 flex items-center justify-center border-2 border-white/20 hover:bg-[var(--retro-red)] hover:border-[var(--retro-navy)] transition-colors">
               <X className="w-4 h-4 text-white" />
@@ -472,9 +472,8 @@ export default function ProfilePage() {
                 <div className="p-5 border-4 border-[var(--retro-navy)] bg-white shadow-[6px_6px_0_0_var(--retro-navy)]">
                   <div className="pixel-font text-[10px] text-gray-400 mb-4 border-b pb-2 tracking-widest flex items-center justify-between">
                     <span className="flex items-center gap-2">
-                      <Shield className="w-3 h-3" /> PRIVACY_LOCK
+                      <Shield className="w-3 h-3" /> PRIVACY SETTINGS
                     </span>
-                    <span className="text-[var(--retro-yellow)]">LOCKED</span>
                   </div>
                   <div className="space-y-3">
                     {[
@@ -504,8 +503,8 @@ export default function ProfilePage() {
                   <Settings className="w-8 h-8 text-[var(--retro-navy)]" />
                 </div>
                 <div>
-                  <h2 className="pixel-font text-3xl text-[var(--retro-navy)] uppercase tracking-tight">IDENTITY_CONFIGURATION</h2>
-                  <p className="pixel-font-body text-base text-gray-400 uppercase tracking-widest">WIZARD_OS://ACCOUNT_MANAGER_E21</p>
+                  <h2 className="pixel-font text-3xl text-[var(--retro-navy)] uppercase tracking-tight">IDENTITY</h2>
+                  <p className="pixel-font-body text-base text-gray-400 uppercase tracking-widest">STUDENT PROFILE</p>
                 </div>
               </div>
 
@@ -514,7 +513,7 @@ export default function ProfilePage() {
                 {/* Personal Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <label className="pixel-font text-[10px] text-gray-400 ml-1 font-bold">IDENTITY_ALPHA</label>
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1 font-bold">FIRST NAME</label>
                     <div className="flex border-4 border-[var(--retro-navy)] focus-within:ring-4 focus-within:ring-[var(--retro-yellow)]/20 transition-all">
                       <input
                         type="text"
@@ -526,7 +525,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="pixel-font text-[10px] text-gray-400 ml-1 font-bold">IDENTITY_BETA</label>
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1 font-bold">LAST NAME</label>
                     <div className="flex border-4 border-[var(--retro-navy)] focus-within:ring-4 focus-within:ring-[var(--retro-yellow)]/20 transition-all">
                       <input
                         type="text"
@@ -542,7 +541,7 @@ export default function ProfilePage() {
                 {/* Academic & Bio */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <label className="pixel-font text-[10px] text-gray-400 ml-1 font-bold">CHRONOLOGY_LEVEL</label>
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1 font-bold">YEAR LEVEL</label>
                     <CustomSelect
                       value={profile.year}
                       onChange={(val) => setProfile({ ...profile, year: val })}
@@ -551,7 +550,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="pixel-font text-[10px] text-gray-400 ml-1 font-bold">CORE_SPECIALIZATION_ID</label>
+                    <label className="pixel-font text-[10px] text-gray-400 ml-1 font-bold">COURSE</label>
                     <div className="flex border-4 border-[var(--retro-navy)] bg-white focus-within:ring-4 focus-within:ring-[var(--retro-yellow)]/20 transition-all">
                       <input
                         list="majors"
@@ -573,7 +572,7 @@ export default function ProfilePage() {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center px-1">
-                    <label className="pixel-font text-[10px] text-gray-400 uppercase tracking-widest font-bold">Biographical_Data_Matrix</label>
+                    <label className="pixel-font text-[10px] text-gray-400 uppercase tracking-widest font-bold">Bio</label>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                       <span className="pixel-font text-[8px] text-gray-300">{profile.bio.length}/500_BLOCKS</span>
@@ -630,7 +629,7 @@ export default function ProfilePage() {
 
                   <div className="md:col-span-2 space-y-3 pt-4">
                     <label className="pixel-font text-[10px] text-gray-400 ml-1 font-bold uppercase tracking-widest flex items-center gap-2">
-                      <Zap className="w-3 h-3 text-[var(--retro-yellow)]" /> PREFERRED_TRANSMISSION_FREQUENCY
+                      <Zap className="w-3 h-3 text-[var(--retro-yellow)]" /> PREFERRED CONTACT
                     </label>
                     <div className="flex gap-4">
                       {['email', 'instagram', 'phone'].map((pref) => (
@@ -658,7 +657,7 @@ export default function ProfilePage() {
                     ) : (
                       <>
                         <Save className="w-8 h-8 group-hover:rotate-12 transition-transform" />
-                        <span className="pixel-font text-2xl uppercase font-heavy">COMMIT_CHANGES_TO_DATABASE</span>
+                        <span className="pixel-font text-2xl uppercase font-heavy">SAVE CHANGES</span>
                       </>
                     )}
                   </button>
