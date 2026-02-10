@@ -89,7 +89,7 @@ func (r *MatchRepository) DeleteByUserID(ctx context.Context, userID string) err
 
 func (r *MatchRepository) GetByUserIDWithUserDetails(ctx context.Context, userID string) ([]*MatchWithUserDetails, error) {
 	query := `
-		SELECT 
+		SELECT
 			m.id,
 			m.user_id,
 			m.matched_user_id,
@@ -100,13 +100,13 @@ func (r *MatchRepository) GetByUserIDWithUserDetails(ctx context.Context, userID
 			u.email as matched_email,
 			u.first_name,
 			u.last_name,
-			u.avatar_url,
-			u.bio,
-			u.year,
-			u.major,
-			u.gender,
-			u.gender_preference,
-			u.visibility
+			COALESCE(u.avatar_url, '') as avatar_url,
+			COALESCE(u.bio, '') as bio,
+			COALESCE(u.year, '') as year,
+			COALESCE(u.major, '') as major,
+			COALESCE(u.gender, 'prefer_not_to_say') as gender,
+			COALESCE(u.gender_preference, 'both') as gender_preference,
+			COALESCE(u.visibility, 'matches_only') as visibility
 		FROM matches m
 		JOIN users u ON m.matched_user_id = u.id
 		WHERE m.user_id = $1

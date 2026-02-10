@@ -59,8 +59,18 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User
 
 	// Cache miss - query database
 	query := `
-		SELECT id, email, first_name, last_name, avatar_url, bio, instagram, phone,
-		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at
+		SELECT id, email, first_name, last_name,
+		       COALESCE(avatar_url, '') as avatar_url,
+		       COALESCE(bio, '') as bio,
+		       COALESCE(instagram, '') as instagram,
+		       COALESCE(phone, '') as phone,
+		       COALESCE(contact_preference, 'email') as contact_preference,
+		       COALESCE(visibility, 'matches_only') as visibility,
+		       COALESCE(year, '') as year,
+		       COALESCE(major, '') as major,
+		       COALESCE(gender, 'prefer_not_to_say') as gender,
+		       COALESCE(gender_preference, 'both') as gender_preference,
+		       created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`
@@ -86,8 +96,18 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User
 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entities.User, error) {
 	query := `
-		SELECT id, email, first_name, last_name, avatar_url, bio, instagram, phone,
-		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at
+		SELECT id, email, first_name, last_name,
+		       COALESCE(avatar_url, '') as avatar_url,
+		       COALESCE(bio, '') as bio,
+		       COALESCE(instagram, '') as instagram,
+		       COALESCE(phone, '') as phone,
+		       COALESCE(contact_preference, 'email') as contact_preference,
+		       COALESCE(visibility, 'matches_only') as visibility,
+		       COALESCE(year, '') as year,
+		       COALESCE(major, '') as major,
+		       COALESCE(gender, 'prefer_not_to_say') as gender,
+		       COALESCE(gender_preference, 'both') as gender_preference,
+		       created_at, updated_at
 		FROM users
 		WHERE email = $1
 	`
@@ -110,7 +130,7 @@ func (r *UserRepository) Create(ctx context.Context, user *entities.User) error 
 	query := `
 		INSERT INTO users (id, email, first_name, last_name, avatar_url, bio, instagram, phone,
 		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW())
 	`
 
 	_, err := r.db.Exec(ctx, query,
@@ -258,8 +278,18 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 
 func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*entities.User, error) {
 	query := `
-		SELECT id, email, first_name, last_name, avatar_url, bio, instagram, phone,
-		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at
+		SELECT id, email, first_name, last_name,
+		       COALESCE(avatar_url, '') as avatar_url,
+		       COALESCE(bio, '') as bio,
+		       COALESCE(instagram, '') as instagram,
+		       COALESCE(phone, '') as phone,
+		       COALESCE(contact_preference, 'email') as contact_preference,
+		       COALESCE(visibility, 'matches_only') as visibility,
+		       COALESCE(year, '') as year,
+		       COALESCE(major, '') as major,
+		       COALESCE(gender, 'prefer_not_to_say') as gender,
+		       COALESCE(gender_preference, 'both') as gender_preference,
+		       created_at, updated_at
 		FROM users
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
@@ -290,8 +320,18 @@ func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*entiti
 
 func (r *UserRepository) ListAll(ctx context.Context) ([]*entities.User, error) {
 	query := `
-		SELECT id, email, first_name, last_name, avatar_url, bio, instagram, phone,
-		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at
+		SELECT id, email, first_name, last_name,
+		       COALESCE(avatar_url, '') as avatar_url,
+		       COALESCE(bio, '') as bio,
+		       COALESCE(instagram, '') as instagram,
+		       COALESCE(phone, '') as phone,
+		       COALESCE(contact_preference, 'email') as contact_preference,
+		       COALESCE(visibility, 'matches_only') as visibility,
+		       COALESCE(year, '') as year,
+		       COALESCE(major, '') as major,
+		       COALESCE(gender, 'prefer_not_to_say') as gender,
+		       COALESCE(gender_preference, 'both') as gender_preference,
+		       created_at, updated_at
 		FROM users
 		ORDER BY created_at DESC
 	`
