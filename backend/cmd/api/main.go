@@ -58,30 +58,30 @@ func main() {
 	// Create Gin router
 	router := gin.New()
 
-	// 1. Initialize rate limiter
-	rateLimiter := middleware.NewRateLimiter(100, 200)
-	rateLimiter.Cleanup(5 * time.Minute)
-
-	// 2. Setup Routes (This will mount Socket.IO on router and API routes on apiGroup)
-	api := router.Group("/api/v1")
-	api.Use(rateLimiter.RateLimit())
-	routes.SetupRoutes(router, api, db, cfg)
-
-	// 3. Global middleware (Apply to remaining routes if needed, but mostly for the API)
-	// Note: We use gin.Recovery and Logger for everything.
-	// CORS is applied via SetupRoutes for Socket, and we can apply it globally here too.
+	// 1. Core Global Middleware (Logger, Recovery, Gzip)
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.Use(gin.Recovery())
 	router.Use(gin.Logger())
 
-	// Apply global CORS - this might affect health/debug but that's fine.
+	// 2. Global CORS Middleware
+	// We apply this early to ensure ALL routes (including health/debug) have it.
 	router.Use(middleware.NewCORS(middleware.CORSConfig{
 		AllowedOrigins: cfg.CORS.AllowedOrigins,
 		AllowedMethods: cfg.CORS.AllowedMethods,
 		AllowedHeaders: cfg.CORS.AllowedHeaders,
 	}))
 
-	// 4. Public System Endpoints
+	// 3. Rate Limiter
+	rateLimiter := middleware.NewRateLimiter(100, 200)
+	rateLimiter.Cleanup(5 * time.Minute)
+
+	// 4. Setup Routes
+	// This will mount Socket.IO on the router and API routes within the apiGroup.
+	apiGroup := router.Group("/api/v1")
+	apiGroup.Use(rateLimiter.RateLimit())
+	routes.SetupRoutes(router, apiGroup, db, cfg)
+
+	// 5. System Endpoints (CORS-enabled via global middleware)
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "healthy",
