@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"wizard-connect/internal/domain/entities"
@@ -217,7 +218,8 @@ func (ctrl *MessageController) CreateConversation(c *gin.Context) {
 	}
 
 	if err := ctrl.conversationRepo.Create(c.Request.Context(), newConv); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create conversation"})
+		fmt.Printf("ERROR: Failed to create conversation: userID=%s, otherUserID=%s, error=%v\n", userID, req.OtherUserID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create conversation: " + err.Error()})
 		return
 	}
 
