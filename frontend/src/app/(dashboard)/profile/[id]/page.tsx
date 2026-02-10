@@ -2,9 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { PixelIcon } from '@/components/ui/PixelIcon'
-import { Mail, Phone, Instagram, Shield, Eye, EyeOff, MessageSquare, ChevronLeft } from 'lucide-react'
+import { motion } from 'framer-motion'
+import {
+    Mail, Instagram, Shield, Eye, EyeOff, MessageSquare,
+    ChevronLeft, Book, Star, Zap, Info, Share2, Heart
+} from 'lucide-react'
+import Image from 'next/image'
 import { apiClient } from '@/lib/api-client'
+import { PixelIcon } from '@/components/ui/PixelIcon'
 import type { User } from '@/types/api'
 
 export default function PublicProfilePage() {
@@ -46,12 +51,9 @@ export default function PublicProfilePage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="text-center">
-                    <div className="inline-block bg-[var(--retro-yellow)] border-4 border-[var(--retro-navy)] px-6 py-3 mb-4 animate-pulse">
-                        <p className="pixel-font text-lg text-[var(--retro-navy)]">LOADING...</p>
-                    </div>
-                </div>
+            <div className="flex flex-col items-center justify-center min-h-[70vh]">
+                <div className="pixel-spinner mb-4" />
+                <p className="pixel-font text-[var(--retro-navy)] animate-pulse uppercase">Searching character archives...</p>
             </div>
         )
     }
@@ -59,13 +61,13 @@ export default function PublicProfilePage() {
     if (error || !profile) {
         return (
             <div className="max-w-4xl mx-auto py-12 px-4 text-center">
-                <div className="pixel-card inline-block max-w-md">
+                <div className="pixel-card inline-block max-w-md bg-white border-4 border-[var(--retro-navy)] p-8 shadow-[8px_8px_0_0_var(--retro-navy)]">
                     <PixelIcon name="chick" size={48} className="mx-auto mb-4" />
-                    <h2 className="pixel-font text-xl text-[var(--retro-navy)] mb-2">ERROR</h2>
-                    <p className="pixel-font-body text-gray-600 mb-6">{error || 'User not found'}</p>
+                    <h2 className="pixel-font text-xl text-[var(--retro-navy)] mb-2 uppercase">ARCHIVE_ERROR</h2>
+                    <p className="pixel-font-body text-gray-600 mb-6">{error || '404: WIZARD_NOT_FOUND'}</p>
                     <button
                         onClick={() => router.back()}
-                        className="pixel-btn pixel-btn-secondary px-6 py-2"
+                        className="pixel-btn pixel-btn-secondary px-8 py-3"
                     >
                         GO BACK
                     </button>
@@ -74,139 +76,198 @@ export default function PublicProfilePage() {
         )
     }
 
-    const getVisibilityLabel = (val: string) => {
+    const getVisibilityInfo = (val: string) => {
         switch (val) {
-            case 'public': return { label: 'Public Server', icon: Eye, color: 'text-green-600', bg: 'bg-green-100' }
-            case 'private': return { label: 'Offline Mode', icon: EyeOff, color: 'text-gray-600', bg: 'bg-gray-100' }
-            default: return { label: 'Guild Only', icon: Shield, color: 'text-blue-600', bg: 'bg-blue-100' }
+            case 'public': return { label: 'PUBLIC_SERVER', icon: Eye, color: 'text-green-500' }
+            case 'private': return { label: 'OFFLINE_MODE', icon: EyeOff, color: 'text-gray-500' }
+            default: return { label: 'GUILD_ONLY', icon: Shield, color: 'text-blue-500' }
         }
     }
 
-    const visibilityInfo = getVisibilityLabel(profile.visibility || 'matches_only')
-    const VisIcon = visibilityInfo.icon
+    const visibility = getVisibilityInfo(profile.visibility || 'matches_only')
 
     return (
-        <div className="max-w-6xl mx-auto py-8 px-4">
+        <div className="max-w-5xl mx-auto py-8 px-4">
             {/* Back Button */}
-            <button
+            <motion.button
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
                 onClick={() => router.back()}
-                className="mb-6 flex items-center gap-2 text-[var(--retro-navy)] hover:text-[var(--retro-red)] transition-colors group"
+                className="mb-6 flex items-center gap-3 text-[var(--retro-navy)] hover:text-[var(--retro-red)] transition-colors group"
             >
-                <div className="bg-white border-2 border-[var(--retro-navy)] p-1 group-hover:bg-[var(--retro-yellow)] transition-colors">
+                <div className="bg-white border-2 border-[var(--retro-navy)] p-2 shadow-[2px_2px_0_0_var(--retro-navy)] group-hover:bg-[var(--retro-yellow)] transition-colors">
                     <ChevronLeft className="w-5 h-5" />
                 </div>
-                <span className="pixel-font text-sm uppercase tracking-wider">BACK TO MATCHES</span>
-            </button>
+                <span className="pixel-font text-xs uppercase tracking-wider">EXIT_TO_WIZARD_LIST</span>
+            </motion.button>
 
-            {/* Profile Card */}
-            <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500">
-                <div className="w-full bg-white border-4 border-[var(--retro-navy)] p-6 md:p-10 relative shadow-[12px_12px_0_0_rgba(30,58,138,0.2)]">
+            {/* Profile Window */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white border-4 border-[var(--retro-navy)] shadow-[12px_12px_0_0_var(--retro-navy)] overflow-hidden"
+            >
+                {/* Title Bar */}
+                <div className="bg-[var(--retro-navy)] p-3 flex items-center justify-between border-b-4 border-[var(--retro-navy)]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-[var(--retro-blue)] flex items-center justify-center border-2 border-[var(--retro-navy)]">
+                            <Star className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="pixel-font text-white text-xs tracking-widest uppercase">WIZARD_PROFILE_PREVIEW</span>
+                    </div>
+                </div>
 
-                    {/* Status Badge */}
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--retro-yellow)] border-l-4 border-b-4 border-[var(--retro-navy)] flex items-center justify-center">
-                        <div className="transform -rotate-45 translate-x-1 translate-y-1">
-                            <span className="pixel-font text-xs text-[var(--retro-navy)] block text-center">STATUS</span>
-                            <span className="pixel-font text-xl text-[var(--retro-navy)] block text-center leading-none">ACTIVE</span>
+                <div className="flex flex-col lg:flex-row divide-y-4 lg:divide-y-0 lg:divide-x-4 divide-[var(--retro-navy)]">
+
+                    {/* Left Column */}
+                    <div className="lg:w-80 flex-shrink-0 p-8 flex flex-col items-center bg-[#fdfdfd]">
+                        <div className="relative mb-8">
+                            <div className="w-48 h-48 border-4 border-[var(--retro-navy)] bg-white shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] relative overflow-hidden">
+                                {profile.avatar_url ? (
+                                    <Image src={profile.avatar_url} alt="Avatar" fill className="object-cover pixelated" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)]/10">
+                                        <PixelIcon name="smiley" size={80} className="text-[var(--retro-navy)] opacity-40" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="absolute -bottom-4 -right-4 bg-[var(--retro-yellow)] border-4 border-[var(--retro-navy)] px-4 py-2 shadow-lg">
+                                <div className="pixel-font text-xs text-[var(--retro-navy)]">WIZARD</div>
+                                <div className="pixel-font text-lg text-[var(--retro-navy)] font-bold">LVL??</div>
+                            </div>
+                        </div>
+
+                        <div className="w-full space-y-6">
+                            <div className="bg-[var(--retro-navy)] text-white p-3 border-2 border-[var(--retro-navy)] text-center relative">
+                                <div className="pixel-font text-[10px] mb-1">SOCIAL_STATUS</div>
+                                <div className="flex items-center justify-center gap-2">
+                                    <visibility.icon className={`w-4 h-4 ${visibility.color}`} />
+                                    <span className="pixel-font-body text-base uppercase">{visibility.label}</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-end mb-1">
+                                    <span className="pixel-font text-[10px] text-[var(--retro-navy)]">AURA_LEVEL</span>
+                                </div>
+                                <div className="h-6 w-full border-2 border-[var(--retro-navy)] p-1 bg-white">
+                                    <div className="h-full bg-[var(--retro-blue)] w-[85%] relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-white/20" style={{ backgroundImage: 'linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.3) 25%, rgba(255,255,255,0.3) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.3) 75%)', backgroundSize: '20px 20px' }} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleMessage}
+                                className="w-full bg-[var(--retro-pink)] text-white p-4 border-b-8 border-pink-800 border-x-0 border-t-0 active:border-b-0 active:translate-y-2 transition-all flex items-center justify-center gap-3"
+                            >
+                                <MessageSquare className="w-5 h-5 text-white" />
+                                <span className="pixel-font text-sm uppercase">SEND_MESSAGE</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row gap-8 mt-2">
-                        {/* Left Column */}
-                        <div className="flex-shrink-0 flex flex-col gap-4 w-full md:w-auto items-center md:items-start">
-                            <div className="w-56 h-56 bg-white border-4 border-[var(--retro-navy)] shadow-[8px_8px_0_0_rgba(0,0,0,0.1)] relative overflow-hidden">
-                                {profile.avatar_url ? (
-                                    <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)]">
-                                        <PixelIcon name="smiley" size={80} className="text-white" />
-                                    </div>
-                                )}
+                    {/* Right Column */}
+                    <div className="flex-1 p-8 md:p-12 space-y-10 group bg-white">
+                        <div className="space-y-4 text-center md:text-left">
+                            <div className="inline-block px-3 py-1 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] mb-2">
+                                <span className="pixel-font text-[10px] text-[var(--retro-navy)]">ENCOUNTER_DATA</span>
                             </div>
-
-                            <div className={`w-56 py-2 px-3 border-2 border-[var(--retro-navy)] flex items-center justify-center gap-2 ${visibilityInfo.bg}`}>
-                                <VisIcon className={`w-4 h-4 ${visibilityInfo.color}`} />
-                                <span className={`pixel-font text-xs uppercase ${visibilityInfo.color}`}>{visibilityInfo.label}</span>
+                            <h1 className="pixel-font text-3xl md:text-6xl text-[var(--retro-navy)] leading-[1.1] uppercase tracking-tighter">
+                                {profile.first_name} <span className="text-[var(--retro-blue)]">{profile.last_name}</span>
+                            </h1>
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                                <div className="flex items-center gap-2 px-3 py-1 border-2 border-[var(--retro-navy)] bg-[var(--retro-blue)]/10">
+                                    <Book className="w-4 h-4 text-[var(--retro-navy)]" />
+                                    <span className="pixel-font-body text-lg font-bold uppercase">{profile.major || 'MYSTIC_ARTS'}</span>
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-1 border-2 border-[var(--retro-navy)] bg-[var(--retro-yellow)]/10">
+                                    <Star className="w-4 h-4 text-[var(--retro-navy)]" />
+                                    <span className="pixel-font-body text-lg font-bold uppercase">{profile.year || 'YEAR_LEVEL_??'}</span>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Right Column */}
-                        <div className="flex-1 min-w-0 pt-2 w-full">
-                            <h1 className="pixel-font text-4xl md:text-6xl text-[var(--retro-navy)] uppercase leading-[0.9] mb-4 text-center md:text-left">
-                                {profile.first_name || 'Anonymous'}<br />
-                                {profile.last_name || 'User'}
-                            </h1>
-
-                            <div className="flex flex-wrap gap-3 mb-8 justify-center md:justify-start">
-                                <div className="bg-[var(--retro-blue)] text-white px-4 py-1 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)]">
-                                    <span className="pixel-font text-xs tracking-widest">WIZARD</span>
-                                </div>
-                                {profile.major && (
-                                    <div className="bg-[var(--retro-yellow)] text-[var(--retro-navy)] px-4 py-1 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)]">
-                                        <span className="pixel-font text-xs uppercase">{profile.major}</span>
-                                    </div>
-                                )}
+                        <div className="relative pt-8 p-6 border-4 border-[var(--retro-navy)] bg-white shadow-[8px_8px_0_0_var(--retro-blue)] transition-all">
+                            <div className="absolute -top-6 left-6 px-4 py-2 bg-white border-4 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)]">
+                                <span className="pixel-font text-xs text-[var(--retro-navy)] flex items-center gap-2">
+                                    <Zap className="w-4 h-4 text-[var(--retro-yellow)] fill-[var(--retro-yellow)]" />
+                                    CHARACTER_LORE
+                                </span>
                             </div>
+                            <p className="pixel-font-body text-xl md:text-2xl text-[var(--retro-navy)] leading-relaxed italic opacity-90 first-letter:text-5xl first-letter:font-bold first-letter:mr-1 first-letter:text-[var(--retro-blue)]">
+                                {profile.bio || "Legend says this wizard is full of mysteries yet to be revealed."}
+                            </p>
+                        </div>
 
-                            <div className="relative border-2 border-[var(--retro-navy)] p-6 mb-8 mt-6">
-                                <div className="absolute -top-3 left-4 bg-white px-2 border-2 border-[var(--retro-navy)]">
-                                    <span className="pixel-font text-xs text-[var(--retro-navy)] uppercase tracking-wider">BIO</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Contact Attributes */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <Share2 className="w-4 h-4 text-[var(--retro-pink)]" />
+                                    <span className="pixel-font text-xs text-[var(--retro-navy)] opacity-70">CONTACT_MODULES</span>
                                 </div>
-                                <p className="font-[family-name:var(--font-vt323)] text-xl text-[var(--retro-navy)] leading-relaxed">
-                                    {profile.bio || "This wizard hasn't shared their lore yet."}
-                                </p>
-                            </div>
-
-                            {/* Contact Info */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {profile.instagram && (
-                                    <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
-                                        <div className="w-10 h-10 flex-shrink-0 bg-[var(--retro-pink)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
-                                            <Instagram className="w-5 h-5 text-white" />
+                                <div className="space-y-3">
+                                    {profile.instagram && (
+                                        <div className="flex items-center gap-3 p-3 border-2 border-[var(--retro-navy)] border-dashed hover:border-solid hover:bg-[var(--retro-pink)]/5 transition-all">
+                                            <div className="w-10 h-10 bg-[var(--retro-pink)] border-2 border-[var(--retro-navy)] flex items-center justify-center flex-shrink-0">
+                                                <Instagram className="w-5 h-5 text-white" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="pixel-font text-[8px] opacity-60 leading-none mb-1 uppercase tracking-widest">SOCIAL_HANDLE</div>
+                                                <div className="pixel-font-body text-base font-bold truncate">@{profile.instagram}</div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-3 p-3 border-2 border-[var(--retro-navy)] border-dashed hover:border-solid hover:bg-[var(--retro-yellow)]/5 transition-all">
+                                        <div className="w-10 h-10 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] flex items-center justify-center flex-shrink-0">
+                                            <Mail className="w-5 h-5 text-[var(--retro-navy)]" />
                                         </div>
                                         <div className="min-w-0">
-                                            <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block tracking-wider">INSTAGRAM</span>
-                                            <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] truncate block">@{profile.instagram}</span>
+                                            <div className="pixel-font text-[8px] opacity-60 leading-none mb-1 uppercase tracking-widest">TRANSMISSION_ID</div>
+                                            <div className="pixel-font-body text-base font-bold truncate">{profile.email}</div>
                                         </div>
-                                    </div>
-                                )}
-
-                                <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
-                                    <div className="w-10 h-10 flex-shrink-0 bg-[var(--retro-blue)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
-                                        <Mail className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block tracking-wider">EMAIL</span>
-                                        <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] truncate block" title={profile.email}>{profile.email}</span>
                                     </div>
                                 </div>
+                            </div>
 
-                                {profile.year && (
-                                    <div className="border-2 border-dashed border-[var(--retro-navy)] p-3 flex items-center gap-3">
-                                        <div className="w-10 h-10 flex-shrink-0 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)] flex items-center justify-center">
-                                            <PixelIcon name="star" size={20} className="text-[var(--retro-navy)]" />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block tracking-wider">YEAR</span>
-                                            <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)]">{profile.year}</span>
+                            {/* Preferences */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <Info className="w-4 h-4 text-[var(--retro-blue)]" />
+                                    <span className="pixel-font text-xs text-[var(--retro-navy)] opacity-70">WIZARD_TRAITS</span>
+                                </div>
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] relative">
+                                        <div className="pixel-font text-[8px] opacity-60 mb-2">IDENTIFIES_AS</div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-3 h-3 border-2 border-[var(--retro-navy)] bg-[var(--retro-pink)]" />
+                                            <span className="pixel-font-body text-lg font-bold uppercase">{profile.gender || 'UNDEFINED'}</span>
                                         </div>
                                     </div>
-                                )}
+                                    <div className="p-4 border-2 border-[var(--retro-navy)] bg-[#f9f9f9] relative">
+                                        <div className="pixel-font text-[8px] opacity-60 mb-2">SEEKING_ALIGNMENT</div>
+                                        <div className="flex items-center gap-3">
+                                            <Heart className="w-5 h-5 text-[var(--retro-red)] fill-[var(--retro-red)]" />
+                                            <span className="pixel-font-body text-lg font-bold uppercase">{profile.gender_preference === 'both' ? 'ANYONE' : profile.gender_preference || 'UNDEFINED'}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
 
-                            {/* Actions */}
-                            <div className="mt-10 flex gap-4">
-                                <button
-                                    onClick={handleMessage}
-                                    className="pixel-btn pixel-btn-primary flex items-center gap-3 px-8 py-3 w-full md:w-auto justify-center"
-                                >
-                                    <MessageSquare className="w-5 h-5" />
-                                    <span className="pixel-font uppercase text-sm">Send Message</span>
-                                </button>
-                            </div>
+                        <div className="pt-6 border-t-2 border-dashed border-[var(--retro-navy)]/30 text-center opacity-40">
+                            <span className="pixel-font text-[8px]">END_OF_RECORD_V1.0</span>
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
+
+            <style jsx global>{`
+                .pixelated {
+                    image-rendering: pixelated;
+                }
+            `}</style>
         </div>
     )
 }
