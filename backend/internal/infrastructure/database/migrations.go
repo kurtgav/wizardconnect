@@ -123,7 +123,10 @@ func (d *Database) AutoMigrate(ctx context.Context) error {
 	d.Exec(ctx, `CREATE INDEX IF NOT EXISTS idx_crushes_user_id ON public.crushes(user_id)`)
 
 	// 5. Repair Conversations Table
-	d.Exec(ctx, `CREATE TABLE IF NOT EXISTS public.conversations (
+	// Drop and recreate to ensure correct schema
+	d.Exec(ctx, `DROP TABLE IF EXISTS public.conversations CASCADE`)
+	d.Exec(ctx, `DROP TABLE IF EXISTS public.messages CASCADE`)
+	d.Exec(ctx, `CREATE TABLE public.conversations (
 		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 		participant1 UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
 		participant2 UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -132,12 +135,13 @@ func (d *Database) AutoMigrate(ctx context.Context) error {
 		created_at TIMESTAMPTZ DEFAULT NOW(),
 		CHECK (participant1 < participant2)
 	)`)
-	d.Exec(ctx, `CREATE INDEX IF NOT EXISTS idx_conversations_participant1 ON public.conversations(participant1)`)
-	d.Exec(ctx, `CREATE INDEX IF NOT EXISTS idx_conversations_participant2 ON public.conversations(participant2)`)
-	d.Exec(ctx, `CREATE INDEX IF NOT EXISTS idx_conversations_updated ON public.conversations(updated_at DESC)`)
+	d.Exec(ctx, `CREATE INDEX idx_conversations_participant1 ON public.conversations(participant1)`)
+	d.Exec(ctx, `CREATE INDEX idx_conversations_participant2 ON public.conversations(participant2)`)
+	d.Exec(ctx, `CREATE INDEX idx_conversations_updated ON public.conversations(updated_at DESC)`)
 
 	// 6. Repair Messages Table
-	d.Exec(ctx, `CREATE TABLE IF NOT EXISTS public.messages (
+	// Already dropped above, now create fresh
+	d.Exec(ctx, `CREATE TABLE public.messages (
 		id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 		conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
 		sender_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -145,8 +149,8 @@ func (d *Database) AutoMigrate(ctx context.Context) error {
 		is_read BOOLEAN DEFAULT FALSE,
 		created_at TIMESTAMPTZ DEFAULT NOW()
 	)`)
-	d.Exec(ctx, `CREATE INDEX IF NOT EXISTS idx_messages_conversation ON public.messages(conversation_id, created_at)`)
-	d.Exec(ctx, `CREATE INDEX IF NOT EXISTS idx_messages_sender ON public.messages(sender_id)`)
+	d.Exec(ctx, `CREATE INDEX idx_messages_conversation ON public.messages(conversation_id, created_at)`)
+	d.Exec(ctx, `CREATE INDEX idx_messages_sender ON public.messages(sender_id)`)
 
 	// 7. Repair Constraints
 	constraints := []string{
