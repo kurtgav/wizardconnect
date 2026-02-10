@@ -77,7 +77,7 @@ export default function MatchesPage() {
           <div className="inline-block bg-[var(--retro-yellow)] border-4 border-[var(--retro-navy)] px-6 py-3 mb-4 animate-pulse">
             <p className="pixel-font text-lg text-[var(--retro-navy)]">LOADING...</p>
           </div>
-          <p className="pixel-font-body text-sm text-gray-600">Finding your Player 2...</p>
+          <p className="pixel-font-body text-sm text-gray-600">Finding your matches...</p>
         </div>
       </div>
     )
@@ -176,7 +176,6 @@ export default function MatchesPage() {
                         <span className="pixel-font text-2xl font-bold text-[var(--retro-navy)]">
                           {match.rank}
                         </span>
-                        {index === 0 && <PixelIcon name="trophy" size={20} className="text-[var(--retro-yellow)]" />}
                       </div>
                     </div>
                   </div>

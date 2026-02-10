@@ -255,7 +255,7 @@ export default function ProfilePage() {
         </h1>
         <div className="inline-block bg-[var(--retro-white)] border-2 border-[var(--retro-navy)] px-4 py-1 shadow-[4px_4px_0_0_var(--retro-navy)]">
           <p className="pixel-font-body font-bold text-[var(--retro-navy)]">
-            {isEditing ? 'CUSTOMIZE YOUR AVATAR' : 'CHARACTER SHEET'}
+            {isEditing ? 'UPDATE YOUR INFO' : 'USER OVERVIEW'}
           </p>
         </div>
       </div>
@@ -267,14 +267,11 @@ export default function ProfilePage() {
         <div className="max-w-4xl mx-auto animate-in fade-in zoom-in-95 duration-500">
           <div className="w-full bg-white border-4 border-[var(--retro-navy)] p-6 md:p-10 relative shadow-[12px_12px_0_0_rgba(30,58,138,0.2)]">
 
-            {/* Level Badge - Top Right */}
+            {/* Active Status Badge - Top Right */}
             <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--retro-yellow)] border-l-4 border-b-4 border-[var(--retro-navy)] flex items-center justify-center">
               <div className="transform -rotate-45 translate-x-1 translate-y-1">
-                <span className="pixel-font text-xs text-[var(--retro-navy)] block text-center">LVL.</span>
-                <span className="pixel-font text-2xl text-[var(--retro-navy)] block text-center leading-none">1</span>
-              </div>
-              <div className="absolute top-2 right-2">
-                <PixelIcon name="sparkle" size={8} className="text-[var(--retro-navy)] opacity-50" />
+                <span className="pixel-font text-xs text-[var(--retro-navy)] block text-center">STATUS</span>
+                <span className="pixel-font text-xl text-[var(--retro-navy)] block text-center leading-none">ACTIVE</span>
               </div>
             </div>
 
@@ -311,10 +308,7 @@ export default function ProfilePage() {
                 {/* Tags */}
                 <div className="flex flex-wrap gap-3 mb-8 justify-center md:justify-start">
                   <div className="bg-[var(--retro-blue)] text-white px-4 py-1 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)]">
-                    <span className="pixel-font text-xs tracking-widest">WIZARD CLASS</span>
-                  </div>
-                  <div className="bg-[var(--retro-blue)] text-white px-4 py-1 border-2 border-[var(--retro-navy)] shadow-[4px_4px_0_0_var(--retro-navy)]">
-                    <span className="pixel-font text-xs tracking-widest">ACTIVE</span>
+                    <span className="pixel-font text-xs tracking-widest">WIZARD</span>
                   </div>
                 </div>
 
@@ -322,7 +316,7 @@ export default function ProfilePage() {
                 <div className="relative border-2 border-[var(--retro-navy)] p-6 mb-8 mt-6">
                   <div className="absolute -top-3 left-4 bg-white px-2 border-2 border-[var(--retro-navy)]">
                     <span className="pixel-font text-xs text-[var(--retro-navy)] uppercase tracking-wider">
-                      BIO / LORE
+                      BIO
                     </span>
                   </div>
                   <p className="font-[family-name:var(--font-vt323)] text-xl text-[var(--retro-navy)] leading-relaxed">
@@ -338,7 +332,7 @@ export default function ProfilePage() {
                       <Mail className="w-6 h-6 text-[var(--retro-navy)]" />
                     </div>
                     <div className="min-w-0 overflow-hidden">
-                      <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">EMAIL SCROLL</span>
+                      <span className="pixel-font text-[10px] text-[var(--retro-navy)] opacity-60 block mb-0.5 tracking-wider">EMAIL ADDRESS</span>
                       <span className="pixel-font-body font-bold text-sm text-[var(--retro-navy)] truncate block" title={profile.email}>{profile.email}</span>
                     </div>
                   </div>
@@ -510,7 +504,7 @@ export default function ProfilePage() {
                   <div className="p-2 bg-[var(--retro-yellow)] border-2 border-[var(--retro-navy)]">
                     <PixelIcon name="sparkle" size={20} />
                   </div>
-                  <h2 className="pixel-font text-lg text-[var(--retro-navy)]">Edit Stats</h2>
+                  <h2 className="pixel-font text-lg text-[var(--retro-navy)]">Edit Profile</h2>
                 </div>
                 <button onClick={() => setIsEditing(false)} className="text-[var(--retro-navy)] hover:text-[var(--retro-red)]">
                   <X className="w-6 h-6" />
