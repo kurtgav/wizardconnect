@@ -36,9 +36,9 @@ export default function MessagesPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const channelsRef = useRef<Map<string, any>>(new Map())
   const supabase = createClient()
-  const { authUser } = useAuth()
+  const { user } = useAuth()
 
-  const currentUserId = authUser?.id || ''
+  const currentUserId = user?.id || ''
 
   const MAX_MESSAGE_LENGTH = 500
 
@@ -85,7 +85,7 @@ export default function MessagesPage() {
     // Refetch conversations when any participant's profile is updated
     const data = await apiClient.getConversations()
     setConversations(data || [])
-    
+
     // If the updated user is in the selected conversation, update that too
     if (selectedConversation && selectedConversation.other_participant.id === userId) {
       const updatedConv = data?.find(c => c.id === selectedConversation.id)
