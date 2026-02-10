@@ -19,6 +19,10 @@
   --retro-pink: #F472B6;
   /* Secondary Containers */
   --retro-white: #FFFFFF;
+  /* Message Bubbles (Other User) */
+  --retro-cyan: #00FFFF;
+  /* Message Bubbles (Current User) */
+  --retro-magenta: #FF00FF;
 
   /* Text Colors */
   --text-primary: var(--retro-navy);
@@ -28,6 +32,7 @@
   --shadow-hard: 8px 8px 0px 0px var(--retro-navy);
   --shadow-hard-sm: 4px 4px 0px 0px var(--retro-navy);
   --shadow-hard-xs: 2px 2px 0px 0px var(--retro-navy);
+  --shadow-window: 4px 4px 0px 0px #000000;
 }
 
 
@@ -199,6 +204,30 @@ h6 {
   background-image:
     linear-gradient(rgba(30, 58, 138, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(30, 58, 138, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Retro Window Shadow */
+.retro-window-shadow {
+  box-shadow: var(--shadow-window);
+}
+
+/* Retro Cyan Background */
+.retro-cyan-bg {
+  background-color: var(--retro-cyan);
+}
+
+/* Retro Magenta Background */
+.retro-magenta-bg {
+  background-color: var(--retro-magenta);
+}
+
+/* Pixel Grid Pattern */
+.pixel-grid-pattern {
+  background-color: #FFFBEB;
+  background-image:
+    linear-gradient(rgba(30, 58, 138, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 138, 0.08) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 

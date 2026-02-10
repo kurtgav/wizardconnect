@@ -1,48 +1,53 @@
 // ============================================
-// MESSAGES PAGE - PIXEL CONCEPT DESIGN
-// Dreamy vaporwave messaging experience with real-time updates
+// MESSAGES PAGE - QUEST_LOG.EXE PIXEL DESIGN
 // ============================================
 
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Search,
+  MoreVertical,
+  Send,
+  ArrowLeft,
+  ArrowRight,
+  X
+} from 'lucide-react'
 import { PixelIcon } from '@/components/ui/PixelIcon'
 import { ProfileModal } from '@/components/ui/ProfileModal'
 import { createClient } from '@/lib/supabase/client'
 import { apiClient } from '@/lib/api-client'
-import type { ConversationWithDetails, Message } from '@/types/api'
+import type { ConversationWithDetails, Message as MessageType } from '@/types/api'
 
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([])
   const [selectedConversation, setSelectedConversation] = useState<ConversationWithDetails | null>(null)
   const [mobileView, setMobileView] = useState<'list' | 'chat'>('list')
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<MessageType[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sendingMessage, setSendingMessage] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string>('')
   const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [showDetails, setShowDetails] = useState(true)
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const channelsRef = useRef<Map<string, any>>(new Map())
   const supabase = createClient()
 
-  // Load conversations on mount
+  const MAX_MESSAGE_LENGTH = 500
+
   useEffect(() => {
     loadConversations()
     return () => {
-      // Cleanup all subscriptions on unmount
       channelsRef.current.forEach((channel) => {
-        if (channel) {
-          supabase.removeChannel(channel)
-        }
+        if (channel) supabase.removeChannel(channel)
       })
       channelsRef.current.clear()
     }
   }, [])
 
-  // Load messages when conversation selected
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation.id)
@@ -52,7 +57,6 @@ export default function MessagesPage() {
       setMessages([])
     }
 
-    // Cleanup subscription when changing conversation
     return () => {
       const messageChannel = channelsRef.current.get('messages')
       if (messageChannel) {
@@ -67,7 +71,6 @@ export default function MessagesPage() {
     }
   }, [selectedConversation])
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -78,7 +81,6 @@ export default function MessagesPage() {
       const data = await apiClient.getConversations()
       setConversations(data || [])
       if (data && data.length > 0 && !selectedConversation) {
-        // Desktop default: select first conversation
         if (window.innerWidth >= 1024) {
           setSelectedConversation(data[0])
         }
@@ -100,7 +102,6 @@ export default function MessagesPage() {
     }
   }
 
-  // Subscribe to new messages for the current conversation
   const subscribeToMessages = (conversationId: string) => {
     const channelName = `messages:${conversationId}`
     const channel = supabase
@@ -114,89 +115,51 @@ export default function MessagesPage() {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload: any) => {
-          const newMessage = payload.new as Message
+          const newMessage = payload.new as MessageType
           setMessages((prev) => {
-            // Avoid duplicates
-            if (prev.some((m) => m.id === newMessage.id)) {
-              return prev
-            }
+            if (prev.some((m) => m.id === newMessage.id)) return prev
             return [...prev, newMessage]
           })
         }
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Subscribed to messages for conversation:', conversationId)
-        }
-      })
-
+      .subscribe()
     channelsRef.current.set('messages', channel)
   }
 
-  // Subscribe to conversation updates (for last message and unread count)
   const subscribeToConversationUpdates = () => {
     const channel = supabase
       .channel('conversations-updates')
       .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'conversations',
-        },
+        { event: '*', schema: 'public', table: 'conversations' },
         async () => {
-          // Reload conversations to get updated last_message and unread counts
           const data = await apiClient.getConversations()
           setConversations(data || [])
         }
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Subscribed to conversation updates')
-        }
-      })
-
+      .subscribe()
     channelsRef.current.set('conversations', channel)
   }
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation || sendingMessage) {
-      return
-    }
+    if (!newMessage.trim() || !selectedConversation || sendingMessage) return
 
     try {
       setSendingMessage(true)
-      const message = await apiClient.sendMessage(selectedConversation.id, { content: newMessage })
-      setMessages((prev) => [...prev, message])
+      const msg = await apiClient.sendMessage(selectedConversation.id, { content: newMessage })
+      setMessages((prev) => [...prev, msg])
       setNewMessage('')
-
-      // Refresh conversations to update last_message
       const data = await apiClient.getConversations()
       setConversations(data || [])
     } catch (error) {
       console.error('Failed to send message:', error)
-      alert('Failed to send message')
     } finally {
       setSendingMessage(false)
     }
   }
 
-  const handleProfileClick = (userId: string) => {
-    setProfileModalUserId(userId)
-  }
-
   const selectConversation = (conv: ConversationWithDetails) => {
     setSelectedConversation(conv)
     setMobileView('chat')
-  }
-
-  const goBackToList = () => {
-    setMobileView('list')
-  }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
   }
 
   const filteredConversations = conversations.filter(conv =>
@@ -205,385 +168,351 @@ export default function MessagesPage() {
       .includes(searchTerm.toLowerCase())
   )
 
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    const dayDiff = Math.floor(diff / (1000 * 60 * 60 * 24))
+
+    if (dayDiff === 0) {
+      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+    } else if (dayDiff < 7) {
+      return date.toLocaleDateString('en-US', { weekday: 'short' })
+    } else {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    }
+  }
+
+  const getStatusColor = (conv: ConversationWithDetails) => {
+    if (conv.other_participant.online) return 'bg-green-500'
+    if (conv.unread_count > 0) return 'bg-yellow-400'
+    return 'bg-gray-400'
+  }
+
   return (
-    <div className="w-full h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] overflow-hidden bg-[var(--retro-cream)]">
-      <div className="flex h-full w-full border-b-4 border-[var(--retro-navy)] bg-[var(--retro-cream)] relative overflow-hidden">
-
-        {/* Messenger Layout Container */}
-        <div className="flex flex-1 overflow-hidden">
-
-          {/* 1. LEFT SIDEBAR: Conversation List */}
-          <div className={`
-            ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}
-            w-full md:w-[320px] lg:w-[360px] border-r-4 border-[var(--retro-navy)] flex-col bg-white
-          `}>
-            {/* Sidebar Header */}
-            <div className="p-4 border-b-4 border-[var(--retro-navy)] bg-[var(--retro-white)] flex-shrink-0">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="pixel-font text-xl text-[var(--retro-navy)] uppercase">Chats</h2>
-                <div className="md:hidden">
-                  <PixelIcon name="smiley" size={24} />
-                </div>
-              </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search transmissions..."
-                  className="pixel-input w-full pl-10 pr-4 py-2 text-sm bg-[var(--retro-cream)] focus:bg-white transition-colors"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 opacity-50">
-                  <PixelIcon name="smiley" size={16} />
-                </div>
-              </div>
+    <div className="flex h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] w-full overflow-hidden pixel-grid-pattern">
+      {/* 1. LEFT SIDEBAR: ACTIVE SPELLS */}
+      <div className={`
+        ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}
+        w-full md:w-80 lg:w-[380px] flex-col border-r-4 border-[var(--retro-navy)] bg-[var(--retro-white)] z-20
+      `}>
+        {/* Sidebar Header - ACTIVE SPELLS */}
+        <div className="p-4 border-b-4 border-[var(--retro-navy)] bg-[var(--retro-yellow)]">
+          <div className="flex justify-between items-center mb-3">
+            <h1 className="text-lg font-bold pixel-font tracking-wider text-[var(--retro-navy)]">
+              ACTIVE SPELLS
+            </h1>
+            <button className="p-1 border-2 border-[var(--retro-navy)] retro-window-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
+              <MoreVertical size={18} className="text-[var(--retro-navy)]" />
+            </button>
+          </div>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--retro-navy)]">
+              <Search size={16} />
             </div>
+            <input
+              type="text"
+              placeholder="FIND SPELL..."
+              className="w-full bg-white border-4 border-[var(--retro-navy)] py-2 pl-10 pr-4 text-sm pixel-font-body text-[var(--retro-navy)] focus:outline-none focus:retro-window-shadow transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
 
-            {/* List */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-12 opacity-50">
-                  <div className="animate-spin mb-4">
-                    <PixelIcon name="smiley" size={32} />
-                  </div>
-                  <p className="pixel-font text-xs tracking-widest uppercase">Syncing...</p>
-                </div>
-              ) : filteredConversations.length === 0 ? (
-                <div className="p-12 text-center opacity-50">
-                  <div className="mb-4 flex justify-center">
-                    <PixelIcon name="smiley" size={48} />
-                  </div>
-                  <p className="pixel-font-body text-sm">No transmissions detected</p>
-                </div>
-              ) : (
-                filteredConversations.map((conv) => (
-                  <div
-                    key={conv.id}
-                    onClick={() => selectConversation(conv)}
-                    className={`
-                      flex items-center gap-4 p-4 cursor-pointer transition-all border-l-4
-                      ${selectedConversation?.id === conv.id
-                        ? 'bg-[var(--retro-yellow)] border-l-[var(--retro-navy)]'
-                        : 'hover:bg-[var(--retro-cream)] border-l-transparent'
-                      }
-                    `}
-                  >
-                    <div className="relative flex-shrink-0">
-                      <div className="w-14 h-14 border-2 border-[var(--retro-navy)] bg-white overflow-hidden shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
-                        {conv.other_participant.avatar_url ? (
-                          <img
-                            src={conv.other_participant.avatar_url}
-                            alt="avatar"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)] text-white">
-                            <PixelIcon name="smiley" size={24} />
-                          </div>
-                        )}
-                      </div>
-                      {conv.other_participant.online && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-[var(--retro-navy)] rounded-full z-10"></div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline mb-1">
-                        <h4 className="pixel-font text-xs truncate font-bold text-[var(--retro-navy)]">
-                          {conv.other_participant.first_name} {conv.other_participant.last_name}
-                        </h4>
-                        <span className="text-[10px] opacity-40 font-mono whitespace-nowrap ml-2">
-                          {conv.updated_at ? formatTime(conv.updated_at) : ""}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center gap-2">
-                        <p className={`pixel-font-body text-xs truncate ${conv.unread_count > 0 ? 'font-bold text-black' : 'opacity-60 text-[var(--retro-navy)]'}`}>
-                          {conv.last_message || "Initialize connection..."}
-                        </p>
-                        {conv.unread_count > 0 && (
-                          <div className="flex-shrink-0 w-5 h-5 bg-[var(--retro-red)] border-2 border-[var(--retro-navy)] flex items-center justify-center text-[10px] text-white pixel-font shadow-[1px_1px_0_0_rgba(0,0,0,0.2)]">
-                            {conv.unread_count}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+        {/* Active Users Status Indicators */}
+        <div className="px-4 py-3 bg-[var(--retro-cream)] border-b-2 border-[var(--retro-navy)]">
+          <div className="flex gap-2">
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-4 bg-green-500 border-2 border-[var(--retro-navy)]"></div>
+              <span className="text-xs pixel-font text-[var(--retro-navy)]">ACTIVE</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-4 bg-yellow-400 border-2 border-[var(--retro-navy)]"></div>
+              <span className="text-xs pixel-font text-[var(--retro-navy)]">NEW</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-4 bg-gray-400 border-2 border-[var(--retro-navy)]"></div>
+              <span className="text-xs pixel-font text-[var(--retro-navy)]">IDLE</span>
             </div>
           </div>
+        </div>
 
-          {/* 2. CENTER: Chat Window */}
-          <div className={`
-            ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}
-            flex-1 flex-col bg-white overflow-hidden
-          `}>
-            {selectedConversation ? (
-              <>
-                {/* Chat Header */}
-                <div className="px-4 py-3 border-b-4 border-[var(--retro-navy)] flex justify-between items-center bg-[var(--retro-cream)] flex-shrink-0 shadow-[0_4px_10px_rgba(0,0,0,0.05)] z-10">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <button
-                      onClick={goBackToList}
-                      className="md:hidden p-2 hover:bg-[var(--retro-navy)] hover:text-white border-2 border-[var(--retro-navy)] transition-all flex-shrink-0"
-                    >
-                      <PixelIcon name="smiley" size={20} className="rotate-180" />
-                    </button>
-                    <div
-                      className="flex items-center gap-3 cursor-pointer hover:opacity-70 min-w-0"
-                      onClick={() => handleProfileClick(selectedConversation.other_participant.id)}
-                    >
-                      <div className="w-10 h-10 border-2 border-[var(--retro-navy)] overflow-hidden bg-white flex-shrink-0 shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
-                        {selectedConversation.other_participant.avatar_url ? (
-                          <img src={selectedConversation.other_participant.avatar_url} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)] text-white">
-                            <PixelIcon name="smiley" size={20} />
-                          </div>
-                        )}
-                      </div>
-                      <div className="truncate">
-                        <h3 className="pixel-font text-sm text-[var(--retro-navy)] truncate">
-                          {selectedConversation.other_participant.first_name} {selectedConversation.other_participant.last_name}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${selectedConversation.other_participant.online ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                          <p className="text-[9px] uppercase font-bold text-[var(--retro-navy)] opacity-60">
-                            {selectedConversation.other_participant.online ? "ACTIVE NOW" : "OFFLINE"}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => setShowDetails(!showDetails)}
-                      className={`pixel-btn px-3 py-1.5 hidden lg:flex items-center gap-2 ${showDetails ? 'bg-[var(--retro-yellow)]' : ''}`}
-                    >
-                      <span className="text-[10px]">INFO</span>
-                    </button>
-                    <button onClick={() => handleProfileClick(selectedConversation.other_participant.id)} className="pixel-btn px-3 py-1.5 flex items-center gap-2">
-                      <span className="text-[10px]">VIEW</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-1 bg-white custom-scrollbar pattern-dots pb-20">
-                  {messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full opacity-30 select-none py-20">
-                      <div className="animate-pulse">
-                        <PixelIcon name="smiley" size={64} />
-                      </div>
-                      <p className="pixel-font text-sm mt-6 uppercase tracking-widest">No transmissions found</p>
-                      <p className="pixel-font-body text-xs mt-2">Initialize conversation sequence...</p>
-                    </div>
-                  ) : (
-                    messages.map((msg, idx) => {
-                      const isMe = msg.sender_id === currentUserId;
-                      const prevMsg = messages[idx - 1];
-                      const nextMsg = messages[idx + 1];
-
-                      const isFirstInGroup = !prevMsg || prevMsg.sender_id !== msg.sender_id;
-                      const isLastInGroup = !nextMsg || nextMsg.sender_id !== msg.sender_id;
-
-                      const showDate = isFirstInGroup && (!prevMsg || new Date(msg.created_at).getTime() - new Date(prevMsg.created_at).getTime() > 30 * 60 * 1000);
-
-                      return (
-                        <div key={msg.id} className={`${isFirstInGroup ? 'mt-6' : 'mt-1'}`}>
-                          {showDate && (
-                            <div className="flex justify-center mb-6 mt-2">
-                              <span className="bg-[var(--retro-cream)] border-2 border-[var(--retro-navy)] px-3 py-1 pixel-font text-[8px] uppercase opacity-70 shadow-[2px_2px_0_0_rgba(0,0,0,0.05)]">
-                                {new Date(msg.created_at).toLocaleDateString()} at {formatTime(msg.created_at)}
-                              </span>
-                            </div>
-                          )}
-                          <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                            {/* Avatar logic: only show for last in group of other user */}
-                            {!isMe && (
-                              <div className="w-8 h-8 flex-shrink-0">
-                                {isLastInGroup ? (
-                                  <div className="w-8 h-8 border-2 border-[var(--retro-navy)] overflow-hidden bg-white shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
-                                    {selectedConversation.other_participant.avatar_url ? (
-                                      <img src={selectedConversation.other_participant.avatar_url} className="w-full h-full object-cover" />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)] text-white">
-                                        <PixelIcon name="smiley" size={16} />
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="w-8" />
-                                )}
-                              </div>
-                            )}
-
-                            <div className={`group relative max-w-[75%] md:max-w-[65%] ${isMe ? 'items-end' : 'items-start'}`}>
-                              <div className={`
-                                p-3 border-2 border-[var(--retro-navy)]
-                                shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]
-                                transition-transform active:scale-[0.98]
-                                ${isMe
-                                  ? 'bg-[var(--retro-navy)] text-white rounded-l-2xl'
-                                  : 'bg-[var(--retro-white)] text-[var(--retro-navy)] rounded-r-2xl'
-                                }
-                                ${isMe && isFirstInGroup ? 'rounded-tr-2xl' : ''}
-                                ${isMe && isLastInGroup ? 'rounded-br-none' : ''}
-                                ${!isMe && isFirstInGroup ? 'rounded-tl-2xl' : ''}
-                                ${!isMe && isLastInGroup ? 'rounded-bl-none' : ''}
-                                ${!isFirstInGroup && !isLastInGroup && isMe ? 'rounded-r-md' : ''}
-                                ${!isFirstInGroup && !isLastInGroup && !isMe ? 'rounded-l-md' : ''}
-                              `}>
-                                <p className="pixel-font-body text-sm leading-relaxed break-words">{msg.content}</p>
-                              </div>
-
-                              {/* Message Status/Time Overlay on hover */}
-                              <div className={`
-                                flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity
-                                ${isMe ? 'justify-end' : 'justify-start'}
-                              `}>
-                                <span className="text-[8px] uppercase font-bold text-[var(--retro-navy)] opacity-40">{formatTime(msg.created_at)}</span>
-                                {isMe && isLastInGroup && (
-                                  <div className="w-2 h-2 rounded-full bg-blue-400 border border-[var(--retro-navy)]"></div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-
-                {/* Input Area */}
-                <div className="p-4 border-t-4 border-[var(--retro-navy)] bg-[var(--retro-cream)] flex-shrink-0">
-                  <div className="flex gap-2 items-end max-w-4xl mx-auto">
-                    <div className="flex gap-1 mb-1 mr-1">
-                      <button className="p-2 hover:bg-[var(--retro-white)] transition-colors opacity-50"><PixelIcon name="smiley" size={20} /></button>
-                      <button className="p-2 hover:bg-[var(--retro-white)] transition-colors opacity-50 hidden sm:block"><PixelIcon name="smiley" size={20} /></button>
-                    </div>
-                    <div className="flex-1 relative">
-                      <textarea
-                        rows={1}
-                        value={newMessage}
-                        onChange={(e) => {
-                          setNewMessage(e.target.value);
-                          e.target.style.height = 'auto';
-                          e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                        }}
-                        placeholder="Type a transmission..."
-                        className="pixel-input w-full py-2.5 px-4 text-sm bg-white resize-none max-h-32 focus:ring-0"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage();
-                            (e.target as HTMLTextAreaElement).style.height = 'auto';
-                          }
-                        }}
-                        disabled={sendingMessage}
-                      />
-                    </div>
-                    <button
-                      onClick={handleSendMessage}
-                      disabled={sendingMessage || !newMessage.trim()}
-                      className="pixel-btn h-[46px] px-6 disabled:opacity-50 flex items-center gap-2 group shadow-[4px_4px_0_0_rgba(0,0,0,0.1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
-                    >
-                      <span className="hidden sm:inline font-bold">SEND</span>
-                      <div className="group-hover:translate-x-1 transition-transform">
-                        <PixelIcon name="smiley" size={18} />
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center bg-[var(--retro-white)] pattern-dots opacity-40">
-                <div className="w-32 h-32 border-4 border-[var(--retro-navy)] border-dashed flex items-center justify-center bg-[var(--retro-cream)]">
-                  <PixelIcon name="smiley" size={48} />
-                </div>
-                <h3 className="pixel-font text-sm mt-6 uppercase">Encrypted Connection Ready</h3>
-                <p className="pixel-font-body text-xs mt-2 text-center max-w-xs">
-                  Select a transmission channel from the left to begin your conversation.
-                </p>
+        {/* Conversations List */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-10 opacity-40">
+              <div className="animate-spin mb-3">
+                <PixelIcon name="smiley" size={32} />
               </div>
-            )}
-          </div>
+              <span className="text-xs font-bold pixel-font">SYNCING...</span>
+            </div>
+          ) : filteredConversations.length === 0 ? (
+            <div className="p-10 text-center opacity-40">
+              <PixelIcon name="bubble" size={48} className="mx-auto mb-4" />
+              <p className="text-sm font-medium pixel-font">NO SPELLS FOUND</p>
+            </div>
+          ) : (
+            filteredConversations.map((conv) => (
+              <div
+                key={conv.id}
+                onClick={() => selectConversation(conv)}
+                className={`
+                  flex items-center gap-3 p-3 mx-2 mt-2 cursor-pointer border-4 border-[var(--retro-navy)] retro-window-shadow
+                  ${selectedConversation?.id === conv.id
+                    ? 'bg-[var(--retro-yellow)]'
+                    : 'bg-white hover:bg-[var(--retro-cream)]'
+                  }
+                  transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none
+                `}
+              >
+                {/* Status Square */}
+                <div className="flex-shrink-0">
+                  <div className={`w-12 h-12 border-4 border-[var(--retro-navy)] retro-window-shadow flex items-center justify-center ${getStatusColor(conv)}`}>
+                    <PixelIcon name="smiley" size={20} className="text-white" />
+                  </div>
+                </div>
 
-          {/* 3. RIGHT SIDEBAR: Details (Desktop only) */}
-          {selectedConversation && showDetails && (
-            <div className="hidden lg:flex w-[300px] border-l-4 border-[var(--retro-navy)] flex-col bg-[var(--retro-white)] overflow-y-auto custom-scrollbar">
-              <div className="p-8 flex flex-col items-center text-center">
-                <div className="relative mb-6">
-                  <div className="w-28 h-28 border-4 border-[var(--retro-navy)] bg-white overflow-hidden shadow-[6px_6px_0_0_var(--retro-navy)] group cursor-pointer" onClick={() => handleProfileClick(selectedConversation.other_participant.id)}>
-                    {selectedConversation.other_participant.avatar_url ? (
-                      <img src={selectedConversation.other_participant.avatar_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)] text-white">
-                        <PixelIcon name="smiley" size={56} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline">
+                    <h4 className="text-sm font-bold pixel-font text-[var(--retro-navy)] truncate">
+                      {conv.other_participant.first_name} {conv.other_participant.last_name}
+                    </h4>
+                    <span className="text-[10px] font-bold pixel-font text-[var(--retro-navy)] ml-2">
+                      {conv.updated_at ? formatTime(conv.updated_at) : ""}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mt-1">
+                    <p className="text-xs truncate pixel-font-body text-[var(--retro-navy)]">
+                      {conv.last_message || "START QUEST..."}
+                    </p>
+                    {conv.unread_count > 0 && (
+                      <div className="bg-[var(--retro-magenta)] text-white w-6 h-6 border-2 border-[var(--retro-navy)] retro-window-shadow flex items-center justify-center text-xs font-bold pixel-font">
+                        {conv.unread_count}
                       </div>
                     )}
                   </div>
-                  {selectedConversation.other_participant.online && (
-                    <div className="absolute bottom-1 right-1 w-6 h-6 bg-green-500 border-4 border-[var(--retro-navy)] rounded-full shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]"></div>
-                  )}
-                </div>
-
-                <h2 className="pixel-font text-base font-bold text-[var(--retro-navy)] mb-1">
-                  {selectedConversation.other_participant.first_name} {selectedConversation.other_participant.last_name}
-                </h2>
-                <p className="text-[10px] uppercase font-bold text-[var(--retro-navy)] opacity-40 mb-8 tracking-widest">
-                  {selectedConversation.other_participant.online ? "Connected" : "Signal Lost"}
-                </p>
-
-                <div className="w-full space-y-4">
-                  <div className="bg-[var(--retro-cream)] p-4 border-2 border-[var(--retro-navy)] text-left shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
-                    <p className="pixel-font text-[10px] uppercase opacity-40 mb-2 border-b-2 border-[var(--retro-navy)] border-dashed pb-1">Status Report</p>
-                    <p className="pixel-font-body text-xs font-bold text-[var(--retro-navy)]">
-                      {selectedConversation.other_participant.online ? "🟢 ENCRYPTED CONNECTION" : "⚪ STANDBY MODE"}
-                    </p>
-                  </div>
-
-                  <div className="bg-[var(--retro-cream)] p-4 border-2 border-[var(--retro-navy)] text-left shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
-                    <p className="pixel-font text-[10px] uppercase opacity-40 mb-2 border-b-2 border-[var(--retro-navy)] border-dashed pb-1">User Bio</p>
-                    <p className="pixel-font-body text-xs italic text-[var(--retro-navy)] leading-relaxed">
-                      "{selectedConversation.other_participant.bio || "No decryption available for bio..."}"
-                    </p>
-                  </div>
-
-                  <div className="bg-[var(--retro-cream)] p-4 border-2 border-[var(--retro-navy)] text-left shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
-                    <p className="pixel-font text-[10px] uppercase opacity-40 mb-2 border-b-2 border-[var(--retro-navy)] border-dashed pb-1">Location Data</p>
-                    <p className="pixel-font-body text-xs text-[var(--retro-navy)]">
-                      {selectedConversation.other_participant.major || "Unknown Sector"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="w-full mt-10 space-y-3 pb-8">
-                  <button
-                    onClick={() => handleProfileClick(selectedConversation.other_participant.id)}
-                    className="pixel-btn w-full py-2.5 flex items-center justify-center gap-2 text-xs font-bold shadow-[4px_4px_0_0_rgba(0,0,0,0.1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
-                  >
-                    ACCESS FULL PROFILE
-                  </button>
-                  <button className="pixel-btn pixel-btn-secondary w-full py-2.5 text-xs opacity-50 cursor-not-allowed">
-                    SILENCE NOTIFICATIONS
-                  </button>
-                  <button className="pixel-btn pixel-btn-secondary w-full py-2.5 text-xs text-[var(--retro-red)] border-[var(--retro-red)] hover:bg-[var(--retro-red)] hover:text-white transition-colors">
-                    TERMINATE CONNECTION
-                  </button>
                 </div>
               </div>
-            </div>
+            ))
           )}
         </div>
       </div>
 
+      {/* 2. CENTER: Chat Window - QUEST_LOG.EXE */}
+      <div className={`
+        ${mobileView === 'list' ? 'hidden md:flex' : 'flex'}
+        flex-1 flex-col relative
+      `}>
+        {selectedConversation ? (
+          <div className="flex flex-col h-full border-4 border-[var(--retro-navy)] retro-window-shadow bg-white">
+            {/* Chat Header - QUEST_LOG.EXE */}
+            <header className="h-16 flex items-center justify-between px-4 bg-black border-b-4 border-[var(--retro-navy)]">
+              <div className="flex items-center gap-3 min-w-0">
+                <button
+                  onClick={() => setMobileView('list')}
+                  className="md:hidden p-2 -ml-2 border-2 border-white bg-[var(--retro-yellow)] retro-window-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+                >
+                  <ArrowLeft size={18} className="text-black" />
+                </button>
+                <div
+                  className="flex items-center gap-3 cursor-pointer min-w-0"
+                  onClick={() => setProfileModalUserId(selectedConversation.other_participant.id)}
+                >
+                  <div className="w-10 h-10 border-2 border-[var(--retro-cyan)] bg-[var(--retro-cyan)] flex items-center justify-center">
+                    <PixelIcon name="smiley" size={16} className="text-black" />
+                  </div>
+                  <div className="truncate">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold pixel-font text-white leading-tight">
+                        {selectedConversation.other_participant.first_name}
+                      </h3>
+                      <span className="text-xs font-bold pixel-font text-[var(--retro-yellow)]">
+                        Lvl 99
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-bold pixel-font text-[var(--retro-cyan)] uppercase">
+                      {selectedConversation.other_participant.online ? "ONLINE" : "OFFLINE"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Window Controls */}
+              <div className="flex items-center gap-2">
+                <button className="w-6 h-6 border-2 border-white bg-[var(--retro-red)]"></button>
+                <button className="w-6 h-6 border-2 border-white bg-[var(--retro-yellow)]"></button>
+                <button className="w-6 h-6 border-2 border-white bg-[var(--retro-cyan)]"></button>
+              </div>
+            </header>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto px-4 py-6 scroll-smooth custom-scrollbar bg-[var(--retro-cream)]">
+              <div className="flex flex-col max-w-4xl mx-auto space-y-3">
+                {/* Profile Header */}
+                <div className="flex flex-col items-center py-6 mb-4 border-4 border-[var(--retro-navy)] retro-window-shadow bg-white">
+                  <div className="w-20 h-20 border-4 border-[var(--retro-navy)] bg-[var(--retro-cyan)] flex items-center justify-center mb-3 retro-window-shadow">
+                    <PixelIcon name="smiley" size={32} className="text-black" />
+                  </div>
+                  <h2 className="text-lg font-bold pixel-font text-[var(--retro-navy)]">
+                    {selectedConversation.other_participant.first_name}
+                  </h2>
+                  <p className="text-sm pixel-font-body text-[var(--retro-navy)] mt-1">WIZARD SOCIAL NETWORKS</p>
+                  <button
+                    onClick={() => setProfileModalUserId(selectedConversation.other_participant.id)}
+                    className="mt-3 px-4 py-2 bg-[var(--retro-yellow)] text-[var(--retro-navy)] text-xs font-bold pixel-font border-4 border-[var(--retro-navy)] retro-window-shadow hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
+                  >
+                    VIEW PROFILE
+                  </button>
+                </div>
+
+                {messages.length > 0 ? (
+                  messages.map((msg, idx) => {
+                    const isMe = msg.sender_id === currentUserId
+                    const prevMsg = messages[idx - 1]
+                    const nextMsg = messages[idx + 1]
+                    const isFirstInGroup = !prevMsg || prevMsg.sender_id !== msg.sender_id
+                    const isLastInGroup = !nextMsg || nextMsg.sender_id !== msg.sender_id
+                    const timeDiff = prevMsg ? (new Date(msg.created_at).getTime() - new Date(prevMsg.created_at).getTime()) / 60000 : 0
+                    const showTimestamp = isFirstInGroup && timeDiff > 15
+
+                    return (
+                      <div key={msg.id} className="w-full">
+                        {showTimestamp && (
+                          <p className="text-center text-[10px] font-bold pixel-font text-[var(--retro-navy)] my-4 opacity-60 uppercase tracking-wider border-2 border-[var(--retro-navy)] inline-block px-3 py-1 bg-white">
+                            {formatTime(msg.created_at)}
+                          </p>
+                        )}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex items-end gap-2 mb-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+                        >
+                          {/* Other User Avatar */}
+                          {!isMe && (
+                            <div className="w-8 h-8 flex-shrink-0 border-2 border-[var(--retro-navy)] bg-[var(--retro-cyan)] flex items-center justify-center">
+                              <PixelIcon name="smiley" size={16} className="text-black" />
+                            </div>
+                          )}
+
+                          {/* Message Bubble */}
+                          <div
+                            className={`
+                              max-w-[70%] px-4 py-3 text-sm transition-all border-4 border-[var(--retro-navy)] retro-window-shadow
+                              ${isMe
+                                ? 'bg-[var(--retro-magenta)] text-white'
+                                : 'bg-[var(--retro-cyan)] text-black'
+                              }
+                            `}
+                          >
+                            {/* Name Badge */}
+                            {isFirstInGroup && (
+                              <div className={`flex items-center gap-2 mb-1 ${isMe ? 'justify-end' : ''}`}>
+                                <span className="text-[10px] font-bold pixel-font">
+                                  {isMe ? 'YOU' : selectedConversation.other_participant.first_name}
+                                </span>
+                                <span className="text-[8px] font-bold pixel-font bg-white text-black px-1.5 py-0.5 border-2 border-black">
+                                  Lvl {isMe ? '99' : '4'}
+                                </span>
+                              </div>
+                            )}
+                            <p className="leading-relaxed whitespace-pre-wrap pixel-font-body">{msg.content}</p>
+                            <p className={`text-[10px] font-bold pixel-font mt-1 ${isMe ? 'text-white' : 'text-black'}`}>
+                              {formatTime(msg.created_at)}
+                            </p>
+                          </div>
+                        </motion.div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-20 opacity-40">
+                    <PixelIcon name="bubble" size={80} />
+                    <p className="text-sm font-bold mt-4 pixel-font uppercase tracking-widest">NO TRANSMISSIONS</p>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
+
+            {/* Input Area */}
+            <div className="p-4 bg-white border-t-4 border-[var(--retro-navy)]">
+              <div className="max-w-4xl mx-auto border-4 border-[var(--retro-navy)] retro-window-shadow bg-white p-3">
+                <div className="flex items-end gap-3">
+                  <textarea
+                    rows={1}
+                    placeholder="ENTER MESSAGE..."
+                    className="flex-1 bg-transparent border-none focus:ring-0 text-[15px] resize-none pixel-font-body text-[var(--retro-navy)] placeholder:text-gray-400 min-h-[44px]"
+                    value={newMessage}
+                    maxLength={MAX_MESSAGE_LENGTH}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value)
+                      e.target.style.height = 'auto'
+                      e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSendMessage()
+                        e.currentTarget.style.height = 'auto'
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!newMessage.trim() || sendingMessage}
+                    className="px-6 py-3 bg-[var(--retro-yellow)] text-black font-bold pixel-font border-4 border-[var(--retro-navy)] retro-window-shadow disabled:bg-gray-200 disabled:cursor-not-allowed hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all flex items-center gap-2"
+                  >
+                    <span>SEND</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+                <div className="flex justify-end mt-2">
+                  <span className="text-xs pixel-font text-[var(--retro-navy)]">
+                    {newMessage.length}/{MAX_MESSAGE_LENGTH}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center bg-white border-4 border-[var(--retro-navy)] retro-window-shadow">
+            <div className="w-24 h-24 border-4 border-[var(--retro-navy)] bg-[var(--retro-yellow)] flex items-center justify-center mb-6 retro-window-shadow">
+              <PixelIcon name="bubble" size={48} className="text-[var(--retro-navy)]" />
+            </div>
+            <h2 className="text-xl font-bold pixel-font text-[var(--retro-navy)] mb-2">SELECT A QUEST</h2>
+            <p className="text-sm pixel-font-body text-[var(--retro-navy)] max-w-xs text-center">
+              CHOOSE A CONVERSATION TO BEGIN YOUR ADVENTURE
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Profile Modal */}
       {profileModalUserId && (
         <ProfileModal
           userId={profileModalUserId}
           onClose={() => setProfileModalUserId(null)}
         />
       )}
+
+      {/* Custom Styles for Scrollers */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #FFFBEB;
+          border-right: 2px solid var(--retro-navy);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: var(--retro-navy);
+          border: 2px solid #000000;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #1e40af;
+        }
+      `}</style>
     </div>
   )
 }
