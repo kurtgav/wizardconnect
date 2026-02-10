@@ -21,6 +21,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     lock: noOpLock,
     persistSession: true,
     autoRefreshToken: true,
+    storage: window.localStorage,
+    storageKey: 'sb-wizardconnect-auth-token',
   },
 })
 

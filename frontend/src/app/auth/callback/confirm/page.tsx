@@ -15,21 +15,30 @@ function AuthCallbackContent() {
         const access_token = searchParams.get('access_token')
         const refresh_token = searchParams.get('refresh_token')
 
-        if (access_token && refresh_token) {
-          // Store tokens in localStorage to prevent Chrome state deletion
-          localStorage.setItem('sb-access-token', access_token)
-          localStorage.setItem('sb-refresh-token', refresh_token)
+        console.log('Auth callback: tokens present:', !!access_token && !!refresh_token)
 
-          // Verify session is active
+        if (access_token && refresh_token) {
           const supabase = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
           )
 
-          await supabase.auth.setSession({
+          // Set the session
+          const { data, error } = await supabase.auth.setSession({
             access_token,
             refresh_token,
           })
+
+          if (error) {
+            console.error('Error setting session:', error)
+            router.push('/login')
+            return
+          }
+
+          console.log('Session set successfully:', data.user?.email)
+
+          // Wait a moment for the session to propagate
+          await new Promise(resolve => setTimeout(resolve, 100))
         }
 
         // Get redirect target
@@ -38,6 +47,8 @@ function AuthCallbackContent() {
         // Clear session storage
         sessionStorage.removeItem('auth_session_id')
         sessionStorage.removeItem('auth_redirect_after')
+
+        console.log('Redirecting to:', redirectUrl)
 
         // Redirect after small delay to ensure state is preserved
         setTimeout(() => {

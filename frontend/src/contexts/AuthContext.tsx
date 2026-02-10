@@ -27,8 +27,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let mounted = true
+
     // Get initial session
     auth.getSession().then((session) => {
+      if (!mounted) return
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user && session.access_token) {
@@ -40,15 +43,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return
+
+      console.log('Auth state changed:', event, session?.user?.email)
+
       setSession(session)
       setUser(session?.user ?? null)
 
-      if (event === 'SIGNED_IN' && session?.user) {
-        // Set token for API client immediately
-        if (session.access_token) {
-          apiClient.setToken(session.access_token)
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        if (session?.user) {
+          // Set token for API client immediately
+          if (session.access_token) {
+            apiClient.setToken(session.access_token)
+          }
+          await loadUserProfile(session.user.id, session.user.email!)
         }
-        await loadUserProfile(session.user.id, session.user.email!)
       } else if (event === 'SIGNED_OUT') {
         setUserProfile(null)
         apiClient.clearToken()
@@ -57,7 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [])
 
   const loadUserProfile = async (userId: string, email: string) => {
