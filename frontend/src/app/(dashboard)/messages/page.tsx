@@ -20,6 +20,7 @@ import { createClient } from '@/lib/supabase/client'
 import { apiClient } from '@/lib/api-client'
 import type { ConversationWithDetails, Message as MessageType } from '@/types/api'
 import { useMultipleProfileUpdates } from '@/hooks/useProfileUpdates'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([])
@@ -29,13 +30,15 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sendingMessage, setSendingMessage] = useState(false)
-  const [currentUserId, setCurrentUserId] = useState<string>('')
   const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const channelsRef = useRef<Map<string, any>>(new Map())
   const supabase = createClient()
+  const { authUser } = useAuth()
+
+  const currentUserId = authUser?.id || ''
 
   const MAX_MESSAGE_LENGTH = 500
 
@@ -70,7 +73,7 @@ export default function MessagesPage() {
         channelsRef.current.delete('conversations')
       }
     }
-  }, [selectedConversation])
+  }, [selectedConversation, currentUserId])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -113,7 +116,6 @@ export default function MessagesPage() {
     try {
       const response: any = await apiClient.getMessages(conversationId)
       setMessages(Array.isArray(response) ? response : (response.data || []))
-      setCurrentUserId(response.current_user_id || '')
     } catch (error) {
       console.error('Failed to load messages:', error)
     }
@@ -121,6 +123,7 @@ export default function MessagesPage() {
 
   const subscribeToMessages = (conversationId: string) => {
     const channelName = `messages:${conversationId}`
+    console.log('Subscribing to messages for conversation:', conversationId)
     const channel = supabase
       .channel(channelName)
       .on(
@@ -132,6 +135,7 @@ export default function MessagesPage() {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload: any) => {
+          console.log('New message received:', payload.new)
           const newMessage = payload.new as MessageType
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMessage.id)) return prev
@@ -139,7 +143,12 @@ export default function MessagesPage() {
           })
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to messages for conversation:', conversationId)
+        }
+      })
     channelsRef.current.set('messages', channel)
   }
 
@@ -397,19 +406,25 @@ export default function MessagesPage() {
                     return (
                       <div key={msg.id} className="w-full">
                         {showTimestamp && (
-                          <p className="text-center text-[10px] font-bold pixel-font text-[var(--retro-navy)] my-4 opacity-60 uppercase tracking-wider border-2 border-[var(--retro-navy)] inline-block px-3 py-1 bg-white">
-                            {formatTime(msg.created_at)}
-                          </p>
+                          <div className="flex justify-center my-4">
+                            <p className="text-[10px] font-bold pixel-font text-[var(--retro-navy)] uppercase tracking-wider border-2 border-[var(--retro-navy)] px-3 py-1 bg-white">
+                              {formatTime(msg.created_at)}
+                            </p>
+                          </div>
                         )}
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className={`flex items-end gap-2 mb-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
+                          className={`flex items-end gap-2 mb-2 ${isMe ? 'justify-end' : 'justify-start'}`}
                         >
-                          {/* Other User Avatar */}
-                          {!isMe && (
-                            <div className="w-8 h-8 flex-shrink-0 border-2 border-[var(--retro-navy)] bg-[var(--retro-cyan)] flex items-center justify-center">
-                              <PixelIcon name="smiley" size={16} className="text-black" />
+                          {/* Avatar - Show for first message in group */}
+                          {isFirstInGroup && (
+                            <div className={`w-10 h-10 flex-shrink-0 border-2 border-[var(--retro-navy)] overflow-hidden ${isMe ? 'order-2' : ''} ${isMe ? 'bg-[var(--retro-magenta)]' : 'bg-[var(--retro-cyan)]} flex items-center justify-center`}>
+                              {isMe ? (
+                                <PixelIcon name="smiley" size={20} className="text-white" />
+                              ) : (
+                                <PixelIcon name="smiley" size={20} className="text-black" />
+                              )}
                             </div>
                           )}
 
@@ -423,19 +438,19 @@ export default function MessagesPage() {
                               }
                             `}
                           >
-                            {/* Name Badge */}
+                            {/* Name Badge - Only show for first message in group */}
                             {isFirstInGroup && (
-                              <div className={`flex items-center gap-2 mb-1 ${isMe ? 'justify-end' : ''}`}>
-                                <span className="text-[10px] font-bold pixel-font">
+                              <div className={`flex items-center gap-2 mb-2 ${isMe ? 'justify-end' : ''}`}>
+                                <span className="text-[11px] font-bold pixel-font">
                                   {isMe ? 'YOU' : selectedConversation.other_participant.first_name}
                                 </span>
-                                <span className="text-[8px] font-bold pixel-font bg-white text-black px-1.5 py-0.5 border-2 border-black">
+                                <span className="text-[9px] font-bold pixel-font bg-white text-black px-2 py-0.5 border-2 border-black">
                                   Lvl {isMe ? '99' : '4'}
                                 </span>
                               </div>
                             )}
-                            <p className="leading-relaxed whitespace-pre-wrap pixel-font-body">{msg.content}</p>
-                            <p className={`text-[10px] font-bold pixel-font mt-1 ${isMe ? 'text-white' : 'text-black'}`}>
+                            <p className="leading-relaxed whitespace-pre-wrap pixel-font-body text-[14px]">{msg.content}</p>
+                            <p className={`text-[10px] font-bold pixel-font mt-2 ${isMe ? 'text-white/70' : 'text-black/70'}`}>
                               {formatTime(msg.created_at)}
                             </p>
                           </div>
