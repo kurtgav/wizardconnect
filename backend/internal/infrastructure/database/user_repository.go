@@ -59,8 +59,10 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User
 
 	// Cache miss - query database
 	query := `
-		SELECT id, email, first_name, last_name,
-		       COALESCE(avatar_url, '') as avatar_url,
+		SELECT id, email,
+			COALESCE(first_name, '') as first_name,
+			COALESCE(last_name, '') as last_name,
+			COALESCE(avatar_url, '') as avatar_url,
 		       COALESCE(bio, '') as bio,
 		       COALESCE(instagram, '') as instagram,
 		       COALESCE(phone, '') as phone,
@@ -96,8 +98,10 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*entities.User
 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entities.User, error) {
 	query := `
-		SELECT id, email, first_name, last_name,
-		       COALESCE(avatar_url, '') as avatar_url,
+		SELECT id, email,
+			COALESCE(first_name, '') as first_name,
+			COALESCE(last_name, '') as last_name,
+			COALESCE(avatar_url, '') as avatar_url,
 		       COALESCE(bio, '') as bio,
 		       COALESCE(instagram, '') as instagram,
 		       COALESCE(phone, '') as phone,
@@ -296,8 +300,10 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 
 func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*entities.User, error) {
 	query := `
-		SELECT id, email, first_name, last_name,
-		       COALESCE(avatar_url, '') as avatar_url,
+		SELECT id, email,
+			COALESCE(first_name, '') as first_name,
+			COALESCE(last_name, '') as last_name,
+			COALESCE(avatar_url, '') as avatar_url,
 		       COALESCE(bio, '') as bio,
 		       COALESCE(instagram, '') as instagram,
 		       COALESCE(phone, '') as phone,
@@ -338,8 +344,10 @@ func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*entiti
 
 func (r *UserRepository) ListAll(ctx context.Context) ([]*entities.User, error) {
 	query := `
-		SELECT id, email, first_name, last_name,
-		       COALESCE(avatar_url, '') as avatar_url,
+		SELECT id, email,
+			COALESCE(first_name, '') as first_name,
+			COALESCE(last_name, '') as last_name,
+			COALESCE(avatar_url, '') as avatar_url,
 		       COALESCE(bio, '') as bio,
 		       COALESCE(instagram, '') as instagram,
 		       COALESCE(phone, '') as phone,
