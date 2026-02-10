@@ -206,8 +206,8 @@ export default function MessagesPage() {
   )
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="flex flex-col h-[calc(100vh-140px)] min-h-[600px] border-4 border-[var(--retro-navy)] bg-[var(--retro-cream)] relative overflow-hidden shadow-[12px_12px_0_0_rgba(0,0,0,0.1)]">
+    <div className="w-full h-[calc(100vh-64px)] md:h-[calc(100vh-80px)] overflow-hidden bg-[var(--retro-cream)]">
+      <div className="flex h-full w-full border-b-4 border-[var(--retro-navy)] bg-[var(--retro-cream)] relative overflow-hidden">
 
         {/* Messenger Layout Container */}
         <div className="flex flex-1 overflow-hidden">
@@ -215,16 +215,21 @@ export default function MessagesPage() {
           {/* 1. LEFT SIDEBAR: Conversation List */}
           <div className={`
             ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}
-            w-full md:w-[320px] lg:w-[380px] border-r-4 border-[var(--retro-navy)] flex-col bg-white
+            w-full md:w-[320px] lg:w-[360px] border-r-4 border-[var(--retro-navy)] flex-col bg-white
           `}>
             {/* Sidebar Header */}
-            <div className="p-4 border-b-4 border-[var(--retro-navy)] bg-[var(--retro-white)]">
-              <h2 className="pixel-font text-xl mb-4 text-[var(--retro-navy)] uppercase">Chats</h2>
+            <div className="p-4 border-b-4 border-[var(--retro-navy)] bg-[var(--retro-white)] flex-shrink-0">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="pixel-font text-xl text-[var(--retro-navy)] uppercase">Chats</h2>
+                <div className="md:hidden">
+                  <PixelIcon name="smiley" size={24} />
+                </div>
+              </div>
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search players..."
-                  className="pixel-input w-full pl-10 pr-4 py-2 text-sm bg-[var(--retro-cream)]"
+                  placeholder="Search transmissions..."
+                  className="pixel-input w-full pl-10 pr-4 py-2 text-sm bg-[var(--retro-cream)] focus:bg-white transition-colors"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -235,17 +240,20 @@ export default function MessagesPage() {
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
               {loading ? (
-                <div className="flex flex-col items-center justify-center h-32 opacity-50">
-                  <div className="animate-bounce mb-2">
-                    <PixelIcon name="smiley" size={24} />
+                <div className="flex flex-col items-center justify-center py-12 opacity-50">
+                  <div className="animate-spin mb-4">
+                    <PixelIcon name="smiley" size={32} />
                   </div>
-                  <p className="pixel-font text-xs">LOADING...</p>
+                  <p className="pixel-font text-xs tracking-widest uppercase">Syncing...</p>
                 </div>
               ) : filteredConversations.length === 0 ? (
-                <div className="p-8 text-center opacity-50">
-                  <p className="pixel-font-body text-sm">No conversations found</p>
+                <div className="p-12 text-center opacity-50">
+                  <div className="mb-4 flex justify-center">
+                    <PixelIcon name="smiley" size={48} />
+                  </div>
+                  <p className="pixel-font-body text-sm">No transmissions detected</p>
                 </div>
               ) : (
                 filteredConversations.map((conv) => (
@@ -253,15 +261,15 @@ export default function MessagesPage() {
                     key={conv.id}
                     onClick={() => selectConversation(conv)}
                     className={`
-                      flex items-center gap-3 p-4 border-b-2 border-transparent cursor-pointer transition-all
+                      flex items-center gap-4 p-4 cursor-pointer transition-all border-l-4
                       ${selectedConversation?.id === conv.id
-                        ? 'bg-[var(--retro-yellow)] border-y-2 border-y-[var(--retro-navy)]'
-                        : 'hover:bg-[var(--retro-cream)]'
+                        ? 'bg-[var(--retro-yellow)] border-l-[var(--retro-navy)]'
+                        : 'hover:bg-[var(--retro-cream)] border-l-transparent'
                       }
                     `}
                   >
                     <div className="relative flex-shrink-0">
-                      <div className="w-12 h-12 border-2 border-[var(--retro-navy)] bg-white overflow-hidden">
+                      <div className="w-14 h-14 border-2 border-[var(--retro-navy)] bg-white overflow-hidden shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
                         {conv.other_participant.avatar_url ? (
                           <img
                             src={conv.other_participant.avatar_url}
@@ -275,27 +283,29 @@ export default function MessagesPage() {
                         )}
                       </div>
                       {conv.other_participant.online && (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-[var(--retro-navy)] rounded-full"></div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 border-2 border-[var(--retro-navy)] rounded-full z-10"></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-1">
-                        <h4 className="pixel-font text-xs truncate">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <h4 className="pixel-font text-xs truncate font-bold text-[var(--retro-navy)]">
                           {conv.other_participant.first_name} {conv.other_participant.last_name}
                         </h4>
-                        <span className="text-[10px] opacity-50 font-mono">
+                        <span className="text-[10px] opacity-40 font-mono whitespace-nowrap ml-2">
                           {conv.updated_at ? formatTime(conv.updated_at) : ""}
                         </span>
                       </div>
-                      <p className={`pixel-font-body text-xs truncate ${conv.unread_count > 0 ? 'font-bold' : 'opacity-60'}`}>
-                        {conv.last_message || "Start a conversation"}
-                      </p>
-                    </div>
-                    {conv.unread_count > 0 && (
-                      <div className="w-5 h-5 bg-[var(--retro-red)] border-2 border-[var(--retro-navy)] flex items-center justify-center text-[10px] text-white pixel-font">
-                        {conv.unread_count}
+                      <div className="flex justify-between items-center gap-2">
+                        <p className={`pixel-font-body text-xs truncate ${conv.unread_count > 0 ? 'font-bold text-black' : 'opacity-60 text-[var(--retro-navy)]'}`}>
+                          {conv.last_message || "Initialize connection..."}
+                        </p>
+                        {conv.unread_count > 0 && (
+                          <div className="flex-shrink-0 w-5 h-5 bg-[var(--retro-red)] border-2 border-[var(--retro-navy)] flex items-center justify-center text-[10px] text-white pixel-font shadow-[1px_1px_0_0_rgba(0,0,0,0.2)]">
+                            {conv.unread_count}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 ))
               )}
@@ -310,19 +320,19 @@ export default function MessagesPage() {
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b-4 border-[var(--retro-navy)] flex justify-between items-center bg-[var(--retro-cream)]">
-                  <div className="flex items-center gap-3">
+                <div className="px-4 py-3 border-b-4 border-[var(--retro-navy)] flex justify-between items-center bg-[var(--retro-cream)] flex-shrink-0 shadow-[0_4px_10px_rgba(0,0,0,0.05)] z-10">
+                  <div className="flex items-center gap-3 min-w-0">
                     <button
                       onClick={goBackToList}
-                      className="md:hidden p-2 hover:bg-[var(--retro-navy)] hover:text-white border-2 border-transparent hover:border-[var(--retro-navy)] transition-all"
+                      className="md:hidden p-2 hover:bg-[var(--retro-navy)] hover:text-white border-2 border-[var(--retro-navy)] transition-all flex-shrink-0"
                     >
                       <PixelIcon name="smiley" size={20} className="rotate-180" />
                     </button>
                     <div
-                      className="flex items-center gap-3 cursor-pointer hover:opacity-70"
+                      className="flex items-center gap-3 cursor-pointer hover:opacity-70 min-w-0"
                       onClick={() => handleProfileClick(selectedConversation.other_participant.id)}
                     >
-                      <div className="w-10 h-10 border-2 border-[var(--retro-navy)] overflow-hidden bg-white">
+                      <div className="w-10 h-10 border-2 border-[var(--retro-navy)] overflow-hidden bg-white flex-shrink-0 shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
                         {selectedConversation.other_participant.avatar_url ? (
                           <img src={selectedConversation.other_participant.avatar_url} className="w-full h-full object-cover" />
                         ) : (
@@ -331,76 +341,110 @@ export default function MessagesPage() {
                           </div>
                         )}
                       </div>
-                      <div>
-                        <h3 className="pixel-font text-sm">{selectedConversation.other_participant.first_name} {selectedConversation.other_participant.last_name}</h3>
-                        <p className="text-[10px] uppercase font-bold text-green-600 opacity-80">
-                          {selectedConversation.other_participant.online ? "ACTIVE NOW" : "OFFLINE"}
-                        </p>
+                      <div className="truncate">
+                        <h3 className="pixel-font text-sm text-[var(--retro-navy)] truncate">
+                          {selectedConversation.other_participant.first_name} {selectedConversation.other_participant.last_name}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${selectedConversation.other_participant.online ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                          <p className="text-[9px] uppercase font-bold text-[var(--retro-navy)] opacity-60">
+                            {selectedConversation.other_participant.online ? "ACTIVE NOW" : "OFFLINE"}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-shrink-0">
                     <button
                       onClick={() => setShowDetails(!showDetails)}
-                      className={`pixel-btn px-2 py-1 hidden lg:block ${showDetails ? 'bg-[var(--retro-yellow)]' : ''}`}
+                      className={`pixel-btn px-3 py-1.5 hidden lg:flex items-center gap-2 ${showDetails ? 'bg-[var(--retro-yellow)]' : ''}`}
                     >
-                      INFO
+                      <span className="text-[10px]">INFO</span>
                     </button>
-                    <button onClick={() => handleProfileClick(selectedConversation.other_participant.id)} className="pixel-btn px-2 py-1">
-                      VIEW
+                    <button onClick={() => handleProfileClick(selectedConversation.other_participant.id)} className="pixel-btn px-3 py-1.5 flex items-center gap-2">
+                      <span className="text-[10px]">VIEW</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white custom-scrollbar pattern-dots">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-1 bg-white custom-scrollbar pattern-dots pb-20">
                   {messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full opacity-30 select-none">
-                      <PixelIcon name="smiley" size={64} />
-                      <p className="pixel-font text-sm mt-4 uppercase">No transmissions found</p>
-                      <p className="pixel-font-body text-xs mt-2">Break the ice!</p>
+                    <div className="flex flex-col items-center justify-center h-full opacity-30 select-none py-20">
+                      <div className="animate-pulse">
+                        <PixelIcon name="smiley" size={64} />
+                      </div>
+                      <p className="pixel-font text-sm mt-6 uppercase tracking-widest">No transmissions found</p>
+                      <p className="pixel-font-body text-xs mt-2">Initialize conversation sequence...</p>
                     </div>
                   ) : (
                     messages.map((msg, idx) => {
                       const isMe = msg.sender_id === currentUserId;
-                      const showDate = idx === 0 || new Date(msg.created_at).getTime() - new Date(messages[idx - 1].created_at).getTime() > 30 * 60 * 1000;
+                      const prevMsg = messages[idx - 1];
+                      const nextMsg = messages[idx + 1];
+
+                      const isFirstInGroup = !prevMsg || prevMsg.sender_id !== msg.sender_id;
+                      const isLastInGroup = !nextMsg || nextMsg.sender_id !== msg.sender_id;
+
+                      const showDate = isFirstInGroup && (!prevMsg || new Date(msg.created_at).getTime() - new Date(prevMsg.created_at).getTime() > 30 * 60 * 1000);
 
                       return (
-                        <div key={msg.id} className="space-y-2">
+                        <div key={msg.id} className={`${isFirstInGroup ? 'mt-6' : 'mt-1'}`}>
                           {showDate && (
-                            <div className="flex justify-center my-8">
-                              <span className="bg-[var(--retro-cream)] border-2 border-[var(--retro-navy)] px-3 py-1 pixel-font text-[8px] uppercase opacity-70">
+                            <div className="flex justify-center mb-6 mt-2">
+                              <span className="bg-[var(--retro-cream)] border-2 border-[var(--retro-navy)] px-3 py-1 pixel-font text-[8px] uppercase opacity-70 shadow-[2px_2px_0_0_rgba(0,0,0,0.05)]">
                                 {new Date(msg.created_at).toLocaleDateString()} at {formatTime(msg.created_at)}
                               </span>
                             </div>
                           )}
-                          <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            {/* Avatar logic: only show for last in group of other user */}
                             {!isMe && (
-                              <div className="w-8 h-8 flex-shrink-0 mr-2 mt-auto self-end border-2 border-[var(--retro-navy)] overflow-hidden bg-white">
-                                {selectedConversation.other_participant.avatar_url ? (
-                                  <img src={selectedConversation.other_participant.avatar_url} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)] text-white">
-                                    <PixelIcon name="smiley" size={16} />
+                              <div className="w-8 h-8 flex-shrink-0">
+                                {isLastInGroup ? (
+                                  <div className="w-8 h-8 border-2 border-[var(--retro-navy)] overflow-hidden bg-white shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
+                                    {selectedConversation.other_participant.avatar_url ? (
+                                      <img src={selectedConversation.other_participant.avatar_url} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)] text-white">
+                                        <PixelIcon name="smiley" size={16} />
+                                      </div>
+                                    )}
                                   </div>
+                                ) : (
+                                  <div className="w-8" />
                                 )}
                               </div>
                             )}
-                            <div className="group relative max-w-[75%] md:max-w-[65%]">
+
+                            <div className={`group relative max-w-[75%] md:max-w-[65%] ${isMe ? 'items-end' : 'items-start'}`}>
                               <div className={`
                                 p-3 border-2 border-[var(--retro-navy)]
+                                shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]
+                                transition-transform active:scale-[0.98]
                                 ${isMe
-                                  ? 'bg-[var(--retro-navy)] text-white shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]'
-                                  : 'bg-[var(--retro-white)] text-[var(--retro-navy)] shadow-[4px_4px_0_0_rgba(0,0,0,0.1)]'
+                                  ? 'bg-[var(--retro-navy)] text-white rounded-l-2xl'
+                                  : 'bg-[var(--retro-white)] text-[var(--retro-navy)] rounded-r-2xl'
                                 }
+                                ${isMe && isFirstInGroup ? 'rounded-tr-2xl' : ''}
+                                ${isMe && isLastInGroup ? 'rounded-br-none' : ''}
+                                ${!isMe && isFirstInGroup ? 'rounded-tl-2xl' : ''}
+                                ${!isMe && isLastInGroup ? 'rounded-bl-none' : ''}
+                                ${!isFirstInGroup && !isLastInGroup && isMe ? 'rounded-r-md' : ''}
+                                ${!isFirstInGroup && !isLastInGroup && !isMe ? 'rounded-l-md' : ''}
                               `}>
-                                <p className="pixel-font-body text-sm leading-relaxed">{msg.content}</p>
+                                <p className="pixel-font-body text-sm leading-relaxed break-words">{msg.content}</p>
                               </div>
+
+                              {/* Message Status/Time Overlay on hover */}
                               <div className={`
-                                absolute -bottom-5 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none
-                                ${isMe ? 'right-0' : 'left-0'}
+                                flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity
+                                ${isMe ? 'justify-end' : 'justify-start'}
                               `}>
-                                <span className="text-[9px] uppercase font-bold text-[var(--retro-navy)]">{formatTime(msg.created_at)}</span>
+                                <span className="text-[8px] uppercase font-bold text-[var(--retro-navy)] opacity-40">{formatTime(msg.created_at)}</span>
+                                {isMe && isLastInGroup && (
+                                  <div className="w-2 h-2 rounded-full bg-blue-400 border border-[var(--retro-navy)]"></div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -412,8 +456,12 @@ export default function MessagesPage() {
                 </div>
 
                 {/* Input Area */}
-                <div className="p-4 border-t-4 border-[var(--retro-navy)] bg-[var(--retro-cream)]">
-                  <div className="flex gap-2 items-end">
+                <div className="p-4 border-t-4 border-[var(--retro-navy)] bg-[var(--retro-cream)] flex-shrink-0">
+                  <div className="flex gap-2 items-end max-w-4xl mx-auto">
+                    <div className="flex gap-1 mb-1 mr-1">
+                      <button className="p-2 hover:bg-[var(--retro-white)] transition-colors opacity-50"><PixelIcon name="smiley" size={20} /></button>
+                      <button className="p-2 hover:bg-[var(--retro-white)] transition-colors opacity-50 hidden sm:block"><PixelIcon name="smiley" size={20} /></button>
+                    </div>
                     <div className="flex-1 relative">
                       <textarea
                         rows={1}
@@ -421,10 +469,10 @@ export default function MessagesPage() {
                         onChange={(e) => {
                           setNewMessage(e.target.value);
                           e.target.style.height = 'auto';
-                          e.target.style.height = e.target.scrollHeight + 'px';
+                          e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
                         }}
-                        placeholder="Aa"
-                        className="pixel-input w-full py-2 px-4 text-sm bg-white resize-none max-h-32"
+                        placeholder="Type a transmission..."
+                        className="pixel-input w-full py-2.5 px-4 text-sm bg-white resize-none max-h-32 focus:ring-0"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
@@ -438,10 +486,12 @@ export default function MessagesPage() {
                     <button
                       onClick={handleSendMessage}
                       disabled={sendingMessage || !newMessage.trim()}
-                      className="pixel-btn h-[42px] px-6 disabled:opacity-50 flex items-center gap-2"
+                      className="pixel-btn h-[46px] px-6 disabled:opacity-50 flex items-center gap-2 group shadow-[4px_4px_0_0_rgba(0,0,0,0.1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
                     >
-                      <span className="hidden sm:inline">SEND</span>
-                      <PixelIcon name="smiley" size={16} />
+                      <span className="hidden sm:inline font-bold">SEND</span>
+                      <div className="group-hover:translate-x-1 transition-transform">
+                        <PixelIcon name="smiley" size={18} />
+                      </div>
                     </button>
                   </div>
                 </div>
@@ -461,53 +511,65 @@ export default function MessagesPage() {
 
           {/* 3. RIGHT SIDEBAR: Details (Desktop only) */}
           {selectedConversation && showDetails && (
-            <div className="hidden lg:flex w-[300px] border-l-4 border-[var(--retro-navy)] flex-col bg-[var(--retro-white)] overflow-y-auto">
+            <div className="hidden lg:flex w-[300px] border-l-4 border-[var(--retro-navy)] flex-col bg-[var(--retro-white)] overflow-y-auto custom-scrollbar">
               <div className="p-8 flex flex-col items-center text-center">
-                <div className="w-24 h-24 border-4 border-[var(--retro-navy)] bg-white overflow-hidden shadow-[4px_4px_0_0_var(--retro-navy)] mb-6">
-                  {selectedConversation.other_participant.avatar_url ? (
-                    <img src={selectedConversation.other_participant.avatar_url} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)] text-white">
-                      <PixelIcon name="smiley" size={48} />
-                    </div>
+                <div className="relative mb-6">
+                  <div className="w-28 h-28 border-4 border-[var(--retro-navy)] bg-white overflow-hidden shadow-[6px_6px_0_0_var(--retro-navy)] group cursor-pointer" onClick={() => handleProfileClick(selectedConversation.other_participant.id)}>
+                    {selectedConversation.other_participant.avatar_url ? (
+                      <img src={selectedConversation.other_participant.avatar_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-[var(--retro-blue)] text-white">
+                        <PixelIcon name="smiley" size={56} />
+                      </div>
+                    )}
+                  </div>
+                  {selectedConversation.other_participant.online && (
+                    <div className="absolute bottom-1 right-1 w-6 h-6 bg-green-500 border-4 border-[var(--retro-navy)] rounded-full shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]"></div>
                   )}
                 </div>
-                <h2 className="pixel-font text-sm font-bold border-b-2 border-[var(--retro-navy)] pb-2 lowercase">
+
+                <h2 className="pixel-font text-base font-bold text-[var(--retro-navy)] mb-1">
                   {selectedConversation.other_participant.first_name} {selectedConversation.other_participant.last_name}
                 </h2>
-                <div className="w-full mt-8 space-y-4">
-                  <div className="bg-[var(--retro-cream)] p-3 border-2 border-[var(--retro-navy)] text-left">
-                    <p className="pixel-font text-[10px] uppercase opacity-60 mb-1">Status</p>
-                    <p className="pixel-font-body text-xs font-bold">
-                      {selectedConversation.other_participant.online ? "🟢 Active Now" : "⚪ Offline"}
+                <p className="text-[10px] uppercase font-bold text-[var(--retro-navy)] opacity-40 mb-8 tracking-widest">
+                  {selectedConversation.other_participant.online ? "Connected" : "Signal Lost"}
+                </p>
+
+                <div className="w-full space-y-4">
+                  <div className="bg-[var(--retro-cream)] p-4 border-2 border-[var(--retro-navy)] text-left shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
+                    <p className="pixel-font text-[10px] uppercase opacity-40 mb-2 border-b-2 border-[var(--retro-navy)] border-dashed pb-1">Status Report</p>
+                    <p className="pixel-font-body text-xs font-bold text-[var(--retro-navy)]">
+                      {selectedConversation.other_participant.online ? "🟢 ENCRYPTED CONNECTION" : "⚪ STANDBY MODE"}
                     </p>
                   </div>
-                  <div className="bg-[var(--retro-cream)] p-3 border-2 border-[var(--retro-navy)] text-left">
-                    <p className="pixel-font text-[10px] uppercase opacity-60 mb-1">Bio</p>
-                    <p className="pixel-font-body text-xs italic">
-                      "{selectedConversation.other_participant.bio || "No bio set..."}"
+
+                  <div className="bg-[var(--retro-cream)] p-4 border-2 border-[var(--retro-navy)] text-left shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
+                    <p className="pixel-font text-[10px] uppercase opacity-40 mb-2 border-b-2 border-[var(--retro-navy)] border-dashed pb-1">User Bio</p>
+                    <p className="pixel-font-body text-xs italic text-[var(--retro-navy)] leading-relaxed">
+                      "{selectedConversation.other_participant.bio || "No decryption available for bio..."}"
                     </p>
                   </div>
-                  <div className="bg-[var(--retro-cream)] p-3 border-2 border-[var(--retro-navy)] text-left">
-                    <p className="pixel-font text-[10px] uppercase opacity-60 mb-1">Location</p>
-                    <p className="pixel-font-body text-xs">
-                      {selectedConversation.other_participant.major || "Unknown Dept"}
+
+                  <div className="bg-[var(--retro-cream)] p-4 border-2 border-[var(--retro-navy)] text-left shadow-[2px_2px_0_0_rgba(0,0,0,0.1)]">
+                    <p className="pixel-font text-[10px] uppercase opacity-40 mb-2 border-b-2 border-[var(--retro-navy)] border-dashed pb-1">Location Data</p>
+                    <p className="pixel-font-body text-xs text-[var(--retro-navy)]">
+                      {selectedConversation.other_participant.major || "Unknown Sector"}
                     </p>
                   </div>
                 </div>
 
-                <div className="w-full mt-12 space-y-2">
+                <div className="w-full mt-10 space-y-3 pb-8">
                   <button
                     onClick={() => handleProfileClick(selectedConversation.other_participant.id)}
-                    className="pixel-btn w-full py-2 flex items-center justify-center gap-2"
+                    className="pixel-btn w-full py-2.5 flex items-center justify-center gap-2 text-xs font-bold shadow-[4px_4px_0_0_rgba(0,0,0,0.1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
                   >
-                    FULL PROFILE
+                    ACCESS FULL PROFILE
                   </button>
-                  <button className="pixel-btn pixel-btn-secondary w-full py-2 opacity-50 cursor-not-allowed">
-                    MUTE NOTIFICATIONS
+                  <button className="pixel-btn pixel-btn-secondary w-full py-2.5 text-xs opacity-50 cursor-not-allowed">
+                    SILENCE NOTIFICATIONS
                   </button>
-                  <button className="pixel-btn pixel-btn-secondary w-full py-2 text-[var(--retro-red)]">
-                    BLOCK PLAYER
+                  <button className="pixel-btn pixel-btn-secondary w-full py-2.5 text-xs text-[var(--retro-red)] border-[var(--retro-red)] hover:bg-[var(--retro-red)] hover:text-white transition-colors">
+                    TERMINATE CONNECTION
                   </button>
                 </div>
               </div>
