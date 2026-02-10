@@ -6,6 +6,7 @@ import (
 	"wizard-connect/internal/infrastructure/database"
 	"wizard-connect/internal/interface/http/controllers"
 	"wizard-connect/internal/interface/http/middleware"
+	"wizard-connect/internal/interface/websocket"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +33,17 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	crushController := controllers.NewCrushController(crushRepo)
 	campaignController := controllers.NewCampaignController(campaignRepo, matchingService, *surveyRepo, matchRepo)
 	adminController := controllers.NewAdminController(adminRepo, userRepo, matchRepo)
+
+	// Initialize websocket handler
+	socketHandler, err := websocket.NewSocketHandler(conversationRepo, messageRepo, userRepo)
+	if err != nil {
+		// Log error but don't panic if WS fails to init?
+		// Actually WS is crucial now.
+		panic("Failed to initialize Socket.IO handler: " + err.Error())
+	}
+
+	// Mount websocket handler - allow all methods for socket.io
+	router.Any("/socket.io/*any", socketHandler.Handler())
 
 	// Initialize auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth.JWTSecret)

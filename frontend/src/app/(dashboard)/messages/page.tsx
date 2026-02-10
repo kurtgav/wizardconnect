@@ -16,11 +16,11 @@ import {
 } from 'lucide-react'
 import { PixelIcon } from '@/components/ui/PixelIcon'
 import { ProfileModal } from '@/components/ui/ProfileModal'
-import { createClient } from '@/lib/supabase/client'
 import { apiClient } from '@/lib/api-client'
 import type { ConversationWithDetails, Message as MessageType } from '@/types/api'
 import { useMultipleProfileUpdates } from '@/hooks/useProfileUpdates'
 import { useAuth } from '@/contexts/AuthContext'
+import { io, Socket } from 'socket.io-client'
 
 export default function MessagesPage() {
   const [conversations, setConversations] = useState<ConversationWithDetails[]>([])
@@ -32,10 +32,10 @@ export default function MessagesPage() {
   const [sendingMessage, setSendingMessage] = useState(false)
   const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [socket, setSocket] = useState<Socket | null>(null)
+  const [isConnected, setIsConnected] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const channelsRef = useRef<Map<string, any>>(new Map())
-  const supabase = createClient()
   const { user } = useAuth()
 
   const currentUserId = user?.id || ''
@@ -44,36 +44,98 @@ export default function MessagesPage() {
 
   useEffect(() => {
     loadConversations()
-    return () => {
-      channelsRef.current.forEach((channel) => {
-        if (channel) supabase.removeChannel(channel)
+
+    // Initialize Socket.IO
+    const apiURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+    const socketPath = apiURL.includes('localhost') ? '/api/v1/socket.io' : '/api/v1/socket.io'
+
+    console.log('Connecting to socket at:', apiURL, 'with path:', socketPath)
+
+    const newSocket = io(apiURL, {
+      path: socketPath,
+      transports: ['websocket'],
+      autoConnect: true,
+      reconnection: true,
+    })
+
+    newSocket.on('connect', () => {
+      console.log('Socket.IO connected')
+      setIsConnected(true)
+    })
+
+    newSocket.on('disconnect', () => {
+      console.log('Socket.IO disconnected')
+      setIsConnected(false)
+    })
+
+    newSocket.on('receive-message', (payload: any) => {
+      console.log('Socket.IO received message:', payload)
+
+      // If we are the sender, we might ignore this or use it to confirm
+      // But usually we filter by ID or content to avoid duplicates from optimistic UI
+
+      const msg: MessageType = {
+        id: payload.id || `ws-${Date.now()}`,
+        conversation_id: payload.roomId,
+        sender_id: payload.userId,
+        content: payload.message,
+        is_read: false,
+        created_at: new Date(payload.timestamp).toISOString(),
+      }
+
+      setMessages((prev) => {
+        // Avoid duplicates (especially for the sender)
+        if (prev.some(m =>
+          (m.id === msg.id) ||
+          (m.content === msg.content && m.sender_id === msg.sender_id && Math.abs(new Date(m.created_at).getTime() - new Date(msg.created_at).getTime()) < 2000)
+        )) {
+          return prev
+        }
+        return [...prev, msg]
       })
-      channelsRef.current.clear()
+
+      // Update conversations list for the last message preview and unread count
+      setConversations(prev => {
+        const updated = prev.map(conv => {
+          if (conv.id === payload.roomId) {
+            const isSelected = selectedConversation?.id === conv.id
+            const isFromMe = payload.userId === currentUserId
+
+            return {
+              ...conv,
+              last_message: payload.message,
+              updated_at: new Date(payload.timestamp).toISOString(),
+              unread_count: (!isSelected && !isFromMe) ? (conv.unread_count || 0) + 1 : (conv.unread_count || 0)
+            }
+          }
+          return conv
+        })
+
+        return [...updated].sort((a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        )
+      })
+    })
+
+    setSocket(newSocket)
+
+    return () => {
+      newSocket.disconnect()
     }
   }, [])
 
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation.id)
-      subscribeToMessages(selectedConversation.id)
-      subscribeToConversationUpdates()
+
+      if (socket && isConnected) {
+        console.log('Joining room:', selectedConversation.id)
+        socket.emit('join-room', selectedConversation.id)
+      }
     } else {
       setMessages([])
     }
-
-    return () => {
-      const messageChannel = channelsRef.current.get('messages')
-      if (messageChannel) {
-        supabase.removeChannel(messageChannel)
-        channelsRef.current.delete('messages')
-      }
-      const conversationChannel = channelsRef.current.get('conversations')
-      if (conversationChannel) {
-        supabase.removeChannel(conversationChannel)
-        channelsRef.current.delete('conversations')
-      }
-    }
-  }, [selectedConversation, currentUserId])
+  }, [selectedConversation, socket, isConnected])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -121,66 +183,56 @@ export default function MessagesPage() {
     }
   }
 
-  const subscribeToMessages = (conversationId: string) => {
-    const channelName = `messages:${conversationId}`
-    console.log('Subscribing to messages for conversation:', conversationId)
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload: any) => {
-          console.log('New message received:', payload.new)
-          const newMessage = payload.new as MessageType
-          setMessages((prev) => {
-            if (prev.some((m) => m.id === newMessage.id)) return prev
-            return [...prev, newMessage]
-          })
-        }
-      )
-      .subscribe((status) => {
-        console.log('Subscription status:', status)
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to messages for conversation:', conversationId)
-        }
-      })
-    channelsRef.current.set('messages', channel)
-  }
-
-  const subscribeToConversationUpdates = () => {
-    const channel = supabase
-      .channel('conversations-updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'conversations' },
-        async () => {
-          const data = await apiClient.getConversations()
-          setConversations(data || [])
-        }
-      )
-      .subscribe()
-    channelsRef.current.set('conversations', channel)
-  }
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation || sendingMessage) return
+    if (!newMessage.trim() || !selectedConversation || !socket || !isConnected) return
+
+    const messageContent = newMessage.trim()
+
+    // Clear input immediately for better UX
+    setNewMessage('')
+
+    // Prepare payload
+    const payload = {
+      roomId: selectedConversation.id,
+      userId: currentUserId,
+      message: messageContent,
+      timestamp: Date.now()
+    }
 
     try {
-      setSendingMessage(true)
-      const msg = await apiClient.sendMessage(selectedConversation.id, { content: newMessage })
-      setMessages((prev) => [...prev, msg])
-      setNewMessage('')
-      const data = await apiClient.getConversations()
-      setConversations(data || [])
+      // Optimistic update
+      const optimisticMsg: MessageType = {
+        id: `optimistic-${Date.now()}`,
+        conversation_id: selectedConversation.id,
+        sender_id: currentUserId,
+        content: messageContent,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      }
+      setMessages((prev) => [...prev, optimisticMsg])
+
+      // Send via WebSocket
+      socket.emit('send-message', JSON.stringify(payload))
+
+      // Also update conversations list locally
+      setConversations(prev => {
+        const updated = prev.map(conv => {
+          if (conv.id === selectedConversation.id) {
+            return {
+              ...conv,
+              last_message: messageContent,
+              updated_at: new Date().toISOString(),
+            }
+          }
+          return conv
+        })
+        return [...updated].sort((a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        )
+      })
     } catch (error) {
-      console.error('Failed to send message:', error)
-    } finally {
-      setSendingMessage(false)
+      console.error('Failed to send message via socket:', error)
     }
   }
 
@@ -249,18 +301,24 @@ export default function MessagesPage() {
 
         {/* Active Users Status Indicators */}
         <div className="px-4 py-3 bg-[var(--retro-cream)] border-b-2 border-[var(--retro-navy)]">
-          <div className="flex gap-2">
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 bg-green-500 border-2 border-[var(--retro-navy)]"></div>
-              <span className="text-xs pixel-font text-[var(--retro-navy)]">ACTIVE</span>
+          <div className="flex justify-between items-center">
+            <div className="flex gap-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 bg-green-500 border-2 border-[var(--retro-navy)]"></div>
+                <span className="text-xs pixel-font text-[var(--retro-navy)]">ACTIVE</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 bg-yellow-400 border-2 border-[var(--retro-navy)]"></div>
+                <span className="text-xs pixel-font text-[var(--retro-navy)]">NEW</span>
+              </div>
             </div>
+
+            {/* Connection Status */}
             <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 bg-yellow-400 border-2 border-[var(--retro-navy)]"></div>
-              <span className="text-xs pixel-font text-[var(--retro-navy)]">NEW</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 bg-gray-400 border-2 border-[var(--retro-navy)]"></div>
-              <span className="text-xs pixel-font text-[var(--retro-navy)]">IDLE</span>
+              <div className={`w-3 h-3 rounded-full border-2 border-[var(--retro-navy)] ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+              <span className="text-[10px] font-bold pixel-font text-[var(--retro-navy)] uppercase">
+                {isConnected ? 'Sync: ON' : 'Sync: OFF'}
+              </span>
             </div>
           </div>
         </div>
