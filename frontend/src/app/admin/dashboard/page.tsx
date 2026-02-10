@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { PixelIcon } from '@/components/ui/PixelIcon'
 import { Navbar } from '@/components/ui/Navbar'
 import { createClient } from '@/lib/supabase/client'
+import { apiClient } from '@/lib/api-client'
 import { Loader2 } from 'lucide-react'
 
 // Tab Components
@@ -12,6 +13,7 @@ import { UsersTab } from './components/UsersTab'
 import { AnalyticsTab } from './components/AnalyticsTab'
 import { AIMatchesTab } from './components/AIMatchesTab'
 import { ManualMatchesTab } from './components/ManualMatchesTab'
+import { MatchTrackingTab } from './components/MatchTrackingTab'
 
 interface Campaign {
   id: string
@@ -76,22 +78,19 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async (supabase: any) => {
     try {
-      const [campaignsResult, usersResult, surveysResult, matchesResult] = await Promise.all([
-        supabase.from('campaigns').select('*').order('created_at', { ascending: false }),
-        supabase.from('users').select('id', { count: 'exact', head: true }),
-        supabase.from('surveys').select('id', { count: 'exact', head: true }).eq('is_complete', true),
-        supabase.from('matches').select('id', { count: 'exact', head: true }),
+      const [campaignsResult, usersRes, matchesRes] = await Promise.all([
+        apiClient.adminGetCampaigns(),
+        apiClient.adminGetUsers(),
+        apiClient.adminGetMatches()
       ])
 
-      if (campaignsResult.data) {
-        setCampaigns(campaignsResult.data)
-      }
+      setCampaigns(campaignsResult || [])
 
       setStats({
-        totalUsers: usersResult.count || 0,
-        completedSurvey: surveysResult.count || 0,
-        totalMatches: matchesResult.count || 0,
-        activeSurvey: (campaignsResult.data || []).filter((c: any) => c.is_active).length,
+        totalUsers: usersRes.count || 0,
+        completedSurvey: (campaignsResult || []).reduce((acc: number, c: any) => acc + (c.total_participants || 0), 0),
+        totalMatches: matchesRes.count || 0,
+        activeSurvey: (campaignsResult || []).filter((c: any) => c.is_active).length,
       })
     } catch (error) {
       console.error('Dashboard fetch error:', error)
@@ -105,6 +104,7 @@ export default function AdminDashboard() {
     { id: 'ai_matches', label: 'AI MATCHES', icon: 'potion' },
     { id: 'manual_match', label: 'MANUAL MATCH', icon: 'heart_solid' },
     { id: 'analytics', label: 'ANALYTICS', icon: 'crystal' },
+    { id: 'match_tracking', label: 'MATCH TRACKER', icon: 'search' },
     { id: 'users', label: 'TOTAL USERS', icon: 'cap' },
   ]
 
@@ -206,6 +206,7 @@ export default function AdminDashboard() {
           {activeTab === 'ai_matches' && <AIMatchesTab />}
           {activeTab === 'manual_match' && <ManualMatchesTab />}
           {activeTab === 'analytics' && <AnalyticsTab />}
+          {activeTab === 'match_tracking' && <MatchTrackingTab />}
           {activeTab === 'users' && <UsersTab />}
 
         </div>

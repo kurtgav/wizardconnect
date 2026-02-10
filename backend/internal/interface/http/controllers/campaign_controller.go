@@ -19,6 +19,7 @@ type CampaignController struct {
 	campaignRepo    repositories.CampaignRepository
 	matchingService services.MatchingService
 	surveyRepo      database.SurveyRepository
+	matchRepo       *database.MatchRepository
 }
 
 type CreateCampaignRequest struct {
@@ -49,11 +50,13 @@ func NewCampaignController(
 	campaignRepo repositories.CampaignRepository,
 	matchingService services.MatchingService,
 	surveyRepo database.SurveyRepository,
+	matchRepo *database.MatchRepository,
 ) *CampaignController {
 	return &CampaignController{
 		campaignRepo:    campaignRepo,
 		matchingService: matchingService,
 		surveyRepo:      surveyRepo,
+		matchRepo:       matchRepo,
 	}
 }
 
@@ -215,12 +218,19 @@ func (c *CampaignController) RunMatchingAlgorithm(ctx *gin.Context) {
 		// Use a background context as this might take time
 		bgCtx := context.Background()
 		for _, survey := range surveys {
+			// Delete existing matches for this user first
+			_ = c.matchingService.MatchRepo().DeleteByUserID(bgCtx, survey.UserID)
+
 			// Generate matches (top 7)
 			matches, err := c.matchingService.GenerateMatches(bgCtx, survey.UserID, 7)
 			if err != nil {
 				continue
 			}
-			_ = matches // Persistent in GenerateMatches via repository
+
+			// Save matches to database
+			for _, match := range matches {
+				_ = c.matchingService.MatchRepo().Create(bgCtx, match)
+			}
 		}
 	}()
 

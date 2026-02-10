@@ -290,6 +290,30 @@ class APIClient {
   }
 
   // ===================
+  // ADMIN ENDPOINTS
+  // ===================
+
+  async adminGetUsers(): Promise<{ users: User[], count: number }> {
+    return this.get<{ users: User[], count: number }>('/api/v1/admin/users')
+  }
+
+  async adminGetMatches(): Promise<{ matches: any[], count: number }> {
+    return this.get<{ matches: any[], count: number }>('/api/v1/admin/matches')
+  }
+
+  async adminCreateManualMatch(matchData: { user_id: string, matched_user_id: string, compatibility_score: number }): Promise<any> {
+    return this.post<any>('/api/v1/admin/matches/manual', matchData)
+  }
+
+  async adminGetCampaigns(): Promise<any[]> {
+    return this.get<any[]>('/api/v1/admin/campaigns')
+  }
+
+  async adminRunMatchingAlgorithm(campaignId: string): Promise<{ message: string, total_participants: number }> {
+    return this.post<{ message: string, total_participants: number }>(`/api/v1/admin/campaigns/${campaignId}/run-algorithm`)
+  }
+
+  // ===================
   // HEALTH CHECK
   // ===================
 

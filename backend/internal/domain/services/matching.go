@@ -35,6 +35,7 @@ type UserRepository interface {
 type MatchingService interface {
 	CalculateCompatibility(ctx context.Context, user1, user2 *entities.SurveyResponse) (float64, error)
 	GenerateMatches(ctx context.Context, userID string, limit int) ([]*entities.Match, error)
+	MatchRepo() MatchRepository
 }
 
 type matchingService struct {
@@ -56,6 +57,10 @@ func NewMatchingService(
 		matchRepo:  matchRepo,
 		userRepo:   userRepo,
 	}
+}
+
+func (s *matchingService) MatchRepo() MatchRepository {
+	return s.matchRepo
 }
 
 // CalculateCompatibility computes a compatibility score (0-100) between two users

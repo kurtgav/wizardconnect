@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Search, User, MoreVertical, Ban, Eye } from 'lucide-react'
 import { ViewProfileModal } from './ViewProfileModal'
+import { apiClient } from '@/lib/api-client'
 
 export function UsersTab() {
     const [users, setUsers] = useState<any[]>([])
@@ -16,18 +17,16 @@ export function UsersTab() {
     }, [])
 
     const fetchUsers = async () => {
-        const supabase = createClient()
-        const { data, error } = await supabase
-            .from('users')
-            .select('*')
-            .order('created_at', { ascending: false })
-
-        if (error) {
+        try {
+            setLoading(true)
+            const { users } = await apiClient.adminGetUsers()
+            setUsers(users || [])
+        } catch (error) {
             console.error('Error fetching users:', error)
-        } else {
-            setUsers(data || [])
+            alert('Failed to load users. Are you sure you have admin access?')
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     const filteredUsers = users.filter((user) =>

@@ -30,8 +30,8 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 	matchController := controllers.NewMatchController(matchRepo, surveyRepo, matchingService)
 	messageController := controllers.NewMessageController(conversationRepo, messageRepo, userRepo)
 	crushController := controllers.NewCrushController(crushRepo)
-	campaignController := controllers.NewCampaignController(campaignRepo, matchingService, *surveyRepo)
-	adminController := controllers.NewAdminController(adminRepo, userRepo)
+	campaignController := controllers.NewCampaignController(campaignRepo, matchingService, *surveyRepo, matchRepo)
+	adminController := controllers.NewAdminController(adminRepo, userRepo, matchRepo)
 
 	// Initialize auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth.JWTSecret)
@@ -100,10 +100,15 @@ func SetupRoutes(router *gin.RouterGroup, db *database.Database, cfg *config.Con
 				admins.POST("/remove", adminController.RemoveAdmin)
 			}
 
-			// User management
+			// User & Match management
 			users := admin.Group("/users")
 			{
 				users.GET("", adminController.GetAllUsers)
+			}
+			matchesGroup := admin.Group("/matches")
+			{
+				matchesGroup.GET("", adminController.GetAllMatches)
+				matchesGroup.POST("/manual", adminController.CreateManualMatch)
 			}
 
 			// Campaign management

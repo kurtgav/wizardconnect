@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { PixelIcon } from '@/components/ui/PixelIcon'
-import { Search, User, Heart, X, Check } from 'lucide-react'
+import { Search, User, Heart, X, Check, Loader2 } from 'lucide-react'
 import { ViewProfileModal } from './ViewProfileModal'
+import { apiClient } from '@/lib/api-client'
 
 export function ManualMatchesTab() {
     const [loading, setLoading] = useState(true)
@@ -26,50 +27,51 @@ export function ManualMatchesTab() {
         setLoading(true)
         const supabase = createClient()
 
-        // Fetch users, matches, AND surveys (for gender)
-        const [usersRes, matchesRes, surveysRes] = await Promise.all([
-            supabase.from('users').select('*'),
-            supabase.from('matches').select('user_id, matched_user_id'),
-            supabase.from('surveys').select('user_id, responses')
-        ])
+        try {
+            // Fetch users, matches, AND surveys (for gender) via API Client and Supabase
+            const [usersRes, matchesRes, surveysRes] = await Promise.all([
+                apiClient.adminGetUsers(),
+                apiClient.adminGetMatches(),
+                supabase.from('surveys').select('user_id, responses')
+            ])
 
-        if (usersRes.error) {
-            console.error(usersRes.error)
+            // Filter out already matched users
+            const matchedIds = new Set<string>()
+            const allMatches = matchesRes.matches || []
+            allMatches.forEach((m: any) => {
+                matchedIds.add(m.user_id)
+                matchedIds.add(m.matched_user_id)
+            })
+
+            const allUsers = usersRes.users || []
+            const unmatched = allUsers.filter((u: any) => !matchedIds.has(u.id))
+
+            // Process Gender Mapping
+            const genderMap: Record<string, string> = {}
+            surveysRes.data?.forEach((s: any) => {
+                if (s.responses?.gender) {
+                    genderMap[s.user_id] = s.responses.gender
+                }
+            })
+
+            // Split into Male / Female
+            const m: any[] = []
+            const f: any[] = []
+
+            unmatched.forEach((u: any) => {
+                const g = genderMap[u.id] || u.gender
+                if (g === 'male') m.push(u)
+                else f.push(u)
+            })
+
+            setMales(m)
+            setFemales(f)
+            setUsers(unmatched)
+        } catch (error) {
+            console.error('Failed to fetch match pool:', error)
+        } finally {
             setLoading(false)
-            return
         }
-
-        // Filter out already matched users
-        const matchedIds = new Set<string>()
-        matchesRes.data?.forEach((m: any) => {
-            matchedIds.add(m.user_id)
-            matchedIds.add(m.matched_user_id)
-        })
-
-        const unmatched = usersRes.data?.filter((u: any) => !matchedIds.has(u.id)) || []
-
-        // Process Gender Mapping
-        const genderMap: Record<string, string> = {}
-        surveysRes.data?.forEach((s: any) => {
-            if (s.responses?.gender) {
-                genderMap[s.user_id] = s.responses.gender
-            }
-        })
-
-        // Split into Male / Female (Others -> Female list for UI balance or 3rd list... sticking to 2 for simplicity)
-        const m: any[] = []
-        const f: any[] = []
-
-        unmatched.forEach((u: any) => {
-            const g = genderMap[u.id]
-            if (g === 'male') m.push(u)
-            else f.push(u) // includes female, non-binary, etc.
-        })
-
-        setMales(m)
-        setFemales(f)
-        setUsers(unmatched)
-        setLoading(false)
     }
 
     const handleSelectUser = (user: any) => {
@@ -92,17 +94,27 @@ export function ManualMatchesTab() {
         const confirm = window.confirm(`Confirm match between ${slot1.first_name} and ${slot2.first_name}?`)
         if (!confirm) return
 
-        // Simulate API call
-        // In real implementation: await supabase.from('matches').insert({ user_id: slot1.id, matched_user_id: slot2.id, ... })
-        console.log(`Matched ${slot1.id} with ${slot2.id}`)
+        try {
+            setLoading(true)
+            await apiClient.adminCreateManualMatch({
+                user_id: slot1.id,
+                matched_user_id: slot2.id,
+                compatibility_score: 99 // Manual matches are considered perfect
+            })
 
-        alert(`Successfully matched ${slot1.first_name} and ${slot2.first_name}!`)
+            alert(`Successfully matched ${slot1.first_name} and ${slot2.first_name}!`)
 
-        // Valid match -> remove from lists
-        setMales(prev => prev.filter(u => u.id !== slot1.id && u.id !== slot2.id))
-        setFemales(prev => prev.filter(u => u.id !== slot1.id && u.id !== slot2.id))
-        setSlot1(null)
-        setSlot2(null)
+            // Valid match -> remove from lists
+            setMales(prev => prev.filter(u => u.id !== slot1.id && u.id !== slot2.id))
+            setFemales(prev => prev.filter(u => u.id !== slot1.id && u.id !== slot2.id))
+            setSlot1(null)
+            setSlot2(null)
+        } catch (error) {
+            console.error('Failed to create manual match:', error)
+            alert('Failed to create manual match: ' + (error instanceof Error ? error.message : 'Unknown error'))
+        } finally {
+            setLoading(false)
+        }
     }
 
     const renderUserCard = (user: any) => (

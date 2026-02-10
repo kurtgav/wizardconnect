@@ -139,6 +139,55 @@ func (r *MatchRepository) GetByUserIDWithUserDetails(ctx context.Context, userID
 	return matches, nil
 }
 
+func (r *MatchRepository) ListAllWithUserDetails(ctx context.Context) ([]*MatchWithBothUserDetails, error) {
+	query := `
+		SELECT
+			m.id,
+			m.user_id,
+			m.matched_user_id,
+			m.compatibility_score,
+			m.rank,
+			m.is_mutual_crush,
+			m.created_at,
+			u1.email as user1_email,
+			COALESCE(u1.first_name, '') as user1_first_name,
+			COALESCE(u1.last_name, '') as user1_last_name,
+			COALESCE(u1.avatar_url, '') as user1_avatar_url,
+			u2.email as user2_email,
+			COALESCE(u2.first_name, '') as user2_first_name,
+			COALESCE(u2.last_name, '') as user2_last_name,
+			COALESCE(u2.avatar_url, '') as user2_avatar_url
+		FROM matches m
+		JOIN users u1 ON m.user_id = u1.id
+		JOIN users u2 ON m.matched_user_id = u2.id
+		ORDER BY m.created_at DESC, m.rank ASC
+	`
+
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var matches []*MatchWithBothUserDetails
+	for rows.Next() {
+		match := &MatchWithBothUserDetails{}
+		err := rows.Scan(
+			&match.ID, &match.UserID, &match.MatchedUserID, &match.CompatibilityScore, &match.Rank, &match.IsMutualCrush, &match.CreatedAt,
+			&match.User1Email, &match.User1FirstName, &match.User1LastName, &match.User1AvatarURL,
+			&match.User2Email, &match.User2FirstName, &match.User2LastName, &match.User2AvatarURL,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		matches = append(matches, match)
+	}
+
+	return matches, nil
+}
+
 type MatchWithUserDetails struct {
 	ID                 string    `json:"id"`
 	UserID             string    `json:"user_id"`
@@ -157,4 +206,22 @@ type MatchWithUserDetails struct {
 	Gender             string    `json:"gender"`
 	GenderPreference   string    `json:"gender_preference"`
 	Visibility         string    `json:"visibility"`
+}
+
+type MatchWithBothUserDetails struct {
+	ID                 string    `json:"id"`
+	UserID             string    `json:"user_id"`
+	MatchedUserID      string    `json:"matched_user_id"`
+	CompatibilityScore float64   `json:"compatibility_score"`
+	Rank               int       `json:"rank"`
+	IsMutualCrush      bool      `json:"is_mutual_crush"`
+	CreatedAt          time.Time `json:"created_at"`
+	User1Email         string    `json:"user1_email"`
+	User1FirstName     string    `json:"user1_first_name"`
+	User1LastName      string    `json:"user1_last_name"`
+	User1AvatarURL     string    `json:"user1_avatar_url"`
+	User2Email         string    `json:"user2_email"`
+	User2FirstName     string    `json:"user2_first_name"`
+	User2LastName      string    `json:"user2_last_name"`
+	User2AvatarURL     string    `json:"user2_avatar_url"`
 }
