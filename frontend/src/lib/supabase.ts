@@ -21,7 +21,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     lock: noOpLock,
     persistSession: true,
     autoRefreshToken: true,
-    storage: window.localStorage,
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     storageKey: 'sb-wizardconnect-auth-token',
   },
 })
@@ -46,6 +46,9 @@ export const auth = {
 
   // Sign in with Google OAuth
   async signInWithGoogle() {
+    if (typeof window === 'undefined') {
+      throw new Error('signInWithGoogle can only be called on the client side')
+    }
     return await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
