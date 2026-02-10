@@ -20,6 +20,10 @@ func (d *Database) AutoMigrate(ctx context.Context) error {
 	}
 
 	// 1. Repair Users Table
+	// First, fix the year column if it's INTEGER (old schema) and change to TEXT
+	// This might fail if year column doesn't exist yet, so we ignore the error
+	d.Exec(ctx, `ALTER TABLE public.users ALTER COLUMN year TYPE TEXT USING year::text`)
+	// Now add any missing columns
 	userCols := []struct {
 		Name string
 		Type string
