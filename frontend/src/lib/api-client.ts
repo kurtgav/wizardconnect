@@ -93,6 +93,8 @@ class APIClient {
     }
 
     try {
+      console.log(`API Request: ${options.method || 'GET'} ${this.baseURL}${endpoint}`)
+
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         ...options,
         headers,
@@ -105,7 +107,21 @@ class APIClient {
         if (isJson) {
           const error = await response.json().catch(() => ({ error: 'Unknown JSON error' }))
           console.error(`API Error (${response.status} - ${endpoint}):`, error)
-          // Include full error details in thrown error
+
+          // Add helpful error messages for auth issues
+          if (response.status === 401) {
+            throw new Error('Your session has expired. Please sign in again.')
+          }
+          if (response.status === 403) {
+            throw new Error('You do not have permission to access this resource.')
+          }
+          if (response.status === 404) {
+            throw new Error('The requested resource was not found.')
+          }
+          if (response.status === 500) {
+            throw new Error('Server error. Please try again later.')
+          }
+
           throw new Error(error.error || error.message || `Request failed with status ${response.status}`)
         } else {
           const text = await response.text()
@@ -132,6 +148,14 @@ class APIClient {
     } catch (error) {
       console.error(`Request Failed: ${endpoint}`, error)
       console.error('Full error details:', error)
+
+      // Add helpful error messages for network issues
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error. Please check your internet connection and try again.')
+      }
+      if (error instanceof TypeError && error.message.includes('network')) {
+        throw new Error('Network error. Please check your internet connection and try again.')
+      }
 
       if (!token && endpoint.includes('/users/me')) {
         console.warn("Request failed and no token was present for /users/me call. This might be a race condition.")

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { auth } from '@/lib/supabase'
+import { debugAuthState } from '@/lib/utils/auth-debug'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -18,11 +19,17 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [showDebug, setShowDebug] = useState(false)
 
   useEffect(() => {
+    // Run debug check on mount
+    debugAuthState()
+
     // Check if user is already logged in
     const checkSession = async () => {
+      console.log('Checking existing session...')
       const session = await auth.getSession()
+      console.log('Existing session:', session)
       if (session) {
         router.push('/survey')
       }
@@ -35,12 +42,16 @@ export default function LoginPage() {
     setError('')
     setIsLoading(true)
 
+    console.log('Attempting to', isSignUp ? 'sign up' : 'sign in', 'with email:', email)
+
     try {
       let result
       if (isSignUp) {
         // Sign up
         result = await auth.signUp(email, password)
+        console.log('Sign up result:', result)
         if (result.error) {
+          console.error('Sign up error:', result.error)
           setError(result.error.message)
           setIsLoading(false)
           return
@@ -50,15 +61,20 @@ export default function LoginPage() {
       } else {
         // Sign in
         result = await auth.signIn(email, password)
+        console.log('Sign in result:', result)
         if (result.error) {
+          console.error('Sign in error:', result.error)
           setError(result.error.message)
           setIsLoading(false)
           return
         }
-        // Success - redirect will happen via useEffect
+        // Success - wait a moment for session to be set, then redirect
+        await new Promise(resolve => setTimeout(resolve, 500))
+        console.log('Login successful, redirecting to /survey')
         router.push('/survey')
       }
     } catch (err: any) {
+      console.error('Auth error:', err)
       setError(err.message || 'Something went wrong')
     } finally {
       setIsLoading(false)
@@ -68,6 +84,8 @@ export default function LoginPage() {
   const handleGoogleAuth = async () => {
     setError('')
     setIsLoading(true)
+
+    console.log('Attempting Google sign-in')
 
     try {
       // Store session ID to preserve auth state across redirects
@@ -79,11 +97,13 @@ export default function LoginPage() {
       const { error } = await auth.signInWithGoogle()
 
       if (error) {
+        console.error('Google sign-in error:', error)
         setError(error.message)
         setIsLoading(false)
       }
       // Note: Redirect will happen via Supabase OAuth flow
     } catch (err: any) {
+      console.error('Google auth error:', err)
       setError(err.message || 'Google sign-in failed')
       setIsLoading(false)
     }
@@ -264,6 +284,31 @@ export default function LoginPage() {
                 >
                   {isSignUp ? 'Already have an account? LOGIN' : 'New player? CREATE ACCOUNT'}
                 </button>
+              </div>
+
+              {/* Debug Toggle */}
+              <div className="relative z-10 text-center mt-4">
+                <button
+                  type="button"
+                  onClick={() => { setShowDebug(!showDebug); debugAuthState() }}
+                  className="font-mono text-[9px] text-[#4A5568] hover:text-[#FF6B9D] transition-colors"
+                >
+                  {showDebug ? 'HIDE DEBUG' : 'SHOW DEBUG INFO'}
+                </button>
+
+                {showDebug && (
+                  <div className="mt-2 p-2 bg-black/80 border border-[#4A5568] rounded text-left font-mono text-[9px] text-[#28C840] overflow-auto max-h-32">
+                    <p>Open browser console (F12) for detailed debug info</p>
+                    <p className="mt-1 text-[#FF6B6B]">Check these if login fails:</p>
+                    <ul className="list-disc ml-4 text-[#4A5568]">
+                      <li>Browser console for errors</li>
+                      <li>Network tab for failed requests</li>
+                      <li>Cookie settings - enable cookies</li>
+                      <li>Private/incognito mode may block auth</li>
+                      <li>Ad blockers may interfere</li>
+                    </ul>
+                  </div>
+                )}
               </div>
 
             </div>

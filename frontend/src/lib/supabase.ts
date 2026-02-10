@@ -3,9 +3,13 @@
 // ============================================
 
 import { createClient } from '@supabase/supabase-js'
+import { checkSupabaseConfig } from '@/lib/utils/supabase-config-check'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
+// Run config check
+checkSupabaseConfig()
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase URL or Anon Key is missing. Please check your environment variables.')
@@ -16,12 +20,60 @@ const noOpLock = async (name: string, acquireTimeout: number, fn: () => Promise<
   return await fn()
 }
 
+// Custom storage adapter with better error handling for mobile browsers
+class CustomStorage {
+  private storage: Storage | null = null
+
+  constructor() {
+    try {
+      if (typeof window !== 'undefined') {
+        this.storage = window.localStorage
+        // Test if localStorage works
+        const testKey = '__supabase_storage_test__'
+        this.storage.setItem(testKey, 'test')
+        this.storage.removeItem(testKey)
+      }
+    } catch (e) {
+      console.warn('localStorage not available, auth will not persist:', e)
+      this.storage = null
+    }
+  }
+
+  getItem(key: string): string | null {
+    try {
+      return this.storage?.getItem(key) ?? null
+    } catch (e) {
+      console.warn('Failed to get item from storage:', e)
+      return null
+    }
+  }
+
+  setItem(key: string, value: string): void {
+    try {
+      this.storage?.setItem(key, value)
+    } catch (e) {
+      console.warn('Failed to set item in storage:', e)
+    }
+  }
+
+  removeItem(key: string): void {
+    try {
+      this.storage?.removeItem(key)
+    } catch (e) {
+      console.warn('Failed to remove item from storage:', e)
+    }
+  }
+}
+
+const customStorage = new CustomStorage()
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     lock: noOpLock,
     persistSession: true,
     autoRefreshToken: true,
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    detectSessionInUrl: true,
+    storage: customStorage as any,
     storageKey: 'sb-wizardconnect-auth-token',
   },
 })

@@ -74,11 +74,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUserProfile = async (userId: string, email: string) => {
     try {
-      // Try to get from API first
+      console.log('Loading user profile for:', userId, email)
       const profile = await apiClient.getProfile()
       setUserProfile(profile)
     } catch (error) {
-      // If API fails, try to get/create via Supabase
+      console.error('Failed to load profile from API, trying Supabase:', error)
       const profile = await supabaseDB.getOrCreateUserProfile(userId, email)
       if (profile) {
         setUserProfile(profile as UserProfile)
@@ -87,18 +87,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = async (email: string, password: string) => {
+    console.log('Attempting to sign in:', email)
     const { error } = await auth.signIn(email, password)
-    if (error) throw error
+
+    if (error) {
+      console.error('Sign in error:', error)
+
+      // Add helpful messages for common errors
+      if (error.message.includes('Invalid login credentials')) {
+        throw new Error('Invalid email or password. Please try again.')
+      }
+      if (error.message.includes('Email not confirmed')) {
+        throw new Error('Please check your email and confirm your account.')
+      }
+      if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+        throw new Error('Network error. Please check your internet connection.')
+      }
+
+      throw error
+    }
   }
 
   const signUp = async (email: string, password: string) => {
+    console.log('Attempting to sign up:', email)
     const { error } = await auth.signUp(email, password)
-    if (error) throw error
+
+    if (error) {
+      console.error('Sign up error:', error)
+
+      if (error.message.includes('User already registered')) {
+        throw new Error('An account with this email already exists. Please sign in.')
+      }
+      if (error.message.includes('password')) {
+        throw new Error('Password must be at least 6 characters.')
+      }
+      if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+        throw new Error('Network error. Please check your internet connection.')
+      }
+
+      throw error
+    }
   }
 
   const signInWithGoogle = async () => {
+    console.log('Attempting Google sign-in')
     const { error } = await auth.signInWithGoogle()
-    if (error) throw error
+
+    if (error) {
+      console.error('Google sign-in error:', error)
+
+      if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+        throw new Error('Network error. Please check your internet connection.')
+      }
+      if (error.message.includes('popup')) {
+        throw new Error('Popup was blocked. Please allow popups for this site.')
+      }
+
+      throw error
+    }
   }
 
   const signOut = async () => {
