@@ -419,7 +419,7 @@ export default function MessagesPage() {
                         >
                           {/* Avatar - Show for first message in group */}
                           {isFirstInGroup && (
-                            <div className={`w-10 h-10 flex-shrink-0 border-2 border-[var(--retro-navy)] overflow-hidden ${isMe ? 'order-2' : ''} ${isMe ? 'bg-[var(--retro-magenta)]' : 'bg-[var(--retro-cyan)]} flex items-center justify-center`}>
+                            <div className={`w-10 h-10 flex-shrink-0 border-2 border-[var(--retro-navy)] overflow-hidden ${isMe ? 'order-2' : ''} ${isMe ? 'bg-[var(--retro-magenta)]' : 'bg-[var(--retro-cyan)]'} flex items-center justify-center`}>
                               {isMe ? (
                                 <PixelIcon name="smiley" size={20} className="text-white" />
                               ) : (
