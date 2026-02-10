@@ -135,7 +135,7 @@ func (r *SurveyRepository) GetByUserID(ctx context.Context, userID string) (*ent
 
 func (r *SurveyRepository) GetCompletedSurveys(ctx context.Context) ([]*entities.SurveyResponse, error) {
 	query := `
-		SELECT id, user_id, responses, personality_type, interests, values, lifestyle,
+		SELECT id, user_id, responses, personality_type, interests, "values", lifestyle,
 		       is_complete, completed_at, created_at, updated_at
 		FROM surveys
 		WHERE is_complete = true
