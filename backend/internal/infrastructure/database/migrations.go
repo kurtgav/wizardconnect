@@ -65,11 +65,14 @@ func (d *Database) AutoMigrate(ctx context.Context) error {
 		Name string
 		Type string
 	}{
+		{"user_id", "UUID UNIQUE NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE"},
+		{"responses", "JSONB NOT NULL DEFAULT '{}'"},
 		{"personality_type", "TEXT"},
 		{"interests", "TEXT[] DEFAULT '{}'"},
 		{"values", "TEXT[] DEFAULT '{}'"},
 		{"lifestyle", "TEXT"},
 		{"is_complete", "BOOLEAN DEFAULT FALSE"},
+		{"completed_at", "TIMESTAMPTZ"},
 	}
 	for _, col := range surveyCols {
 		query := fmt.Sprintf("ALTER TABLE public.surveys ADD COLUMN IF NOT EXISTS %s %s", col.Name, col.Type)
@@ -115,6 +118,7 @@ func (d *Database) AutoMigrate(ctx context.Context) error {
 		created_at TIMESTAMPTZ DEFAULT NOW(),
 		UNIQUE(user_id, crush_email)
 	)`)
+	d.Exec(ctx, `ALTER TABLE public.crushes ADD COLUMN IF NOT EXISTS user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`)
 	d.Exec(ctx, `CREATE INDEX IF NOT EXISTS idx_crushes_user_id ON public.crushes(user_id)`)
 
 	// 5. Repair Conversations Table
