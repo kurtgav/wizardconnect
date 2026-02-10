@@ -127,6 +127,23 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*entitie
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *entities.User) error {
+	// Log the values being inserted for debugging
+	fmt.Printf("DEBUG: Creating user with values:\n")
+	fmt.Printf("  ID: %s\n", user.ID)
+	fmt.Printf("  Email: %s\n", user.Email)
+	fmt.Printf("  FirstName: '%s'\n", user.FirstName)
+	fmt.Printf("  LastName: '%s'\n", user.LastName)
+	fmt.Printf("  AvatarURL: '%s'\n", user.AvatarURL)
+	fmt.Printf("  Bio: '%s'\n", user.Bio)
+	fmt.Printf("  Instagram: '%s'\n", user.Instagram)
+	fmt.Printf("  Phone: '%s'\n", user.Phone)
+	fmt.Printf("  ContactPref: '%s'\n", user.ContactPref)
+	fmt.Printf("  Visibility: '%s'\n", user.Visibility)
+	fmt.Printf("  Year: '%s'\n", user.Year)
+	fmt.Printf("  Major: '%s'\n", user.Major)
+	fmt.Printf("  Gender: '%s'\n", user.Gender)
+	fmt.Printf("  GenderPreference: '%s'\n", user.GenderPreference)
+
 	query := `
 		INSERT INTO users (id, email, first_name, last_name, avatar_url, bio, instagram, phone,
 		       contact_preference, visibility, year, major, gender, gender_preference, created_at, updated_at)
@@ -140,6 +157,7 @@ func (r *UserRepository) Create(ctx context.Context, user *entities.User) error 
 	)
 
 	if err != nil {
+		fmt.Printf("ERROR: Insert failed: %v\n", err)
 		return err
 	}
 
